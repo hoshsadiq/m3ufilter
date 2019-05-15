@@ -1,0 +1,34 @@
+providers:
+  - uri: file:///home/hosh/Workspace/src/github.com/hoshsadiq/m3ufilter/myplay2.m3u
+    replacements:
+      name:
+        - find: "[\\s\\:\\|]+"
+          replace: " "
+
+    filters:
+      name:
+        exclude:
+          - "(?i)Low Bandwith$"
+          - "(?i)Low BW$"
+      attributes:
+        group-title:
+          include:
+            - "^entertainment$"
+            - "^My Country$"
+    setters:
+      - name: KTV
+        attributes:
+          tvg-name: KTV
+        filters:
+          attributes:
+            tvg-id:
+              include:
+                - "^ktv.ku$"
+      - name: Channel 1
+        attributes:
+          tvg-name: Channel 1
+          tvg-id: channelone.uk
+        filters:
+          name:
+          include:
+            - "^ChannelOne$"
