@@ -1,11 +1,14 @@
-package main
+package m3u
 
 import (
 	"errors"
 	"fmt"
 	"github.com/Knetic/govaluate"
 	"github.com/grafov/m3u8"
+	"github.com/maja42/goval"
 )
+
+var evaluator = goval.NewEvaluator()
 
 func evaluate(ms *m3u8.MediaSegment, expr string) (result interface{}, err error) {
 	attrs := make(map[string]string)
@@ -14,10 +17,10 @@ func evaluate(ms *m3u8.MediaSegment, expr string) (result interface{}, err error
 	}
 
 	variables := map[string]interface{}{
-		"Title": ms.Title,
-		"Uri": ms.URI,
+		"Title":    ms.Title,
+		"Uri":      ms.URI,
 		"Duration": ms.Duration,
-		"Attr": attrs,
+		"Attr":     attrs,
 	}
 
 	//fmt.Printf("Evaluating `%s` using vars %v\n", expr, variables)
@@ -69,7 +72,7 @@ func evaluator_attr(args ...interface{}) (interface{}, error) {
 	ms := args[0].(*m3u8.MediaSegment)
 	attrKey := args[1].(string)
 
-	attr, err := getAttr(ms, attrKey)
+	attr, err := GetAttr(ms, attrKey)
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +84,7 @@ func evaluator_attr(args ...interface{}) (interface{}, error) {
 //	subject := args[0].(*m3u8.MediaSegment)
 //	attrKey := args[1].(string)
 //
-//	attr, err := getAttr(ms, attrKey)
+//	attr, err := GetAttr(ms, attrKey)
 //	if err != nil {
 //		return nil, err
 //	}

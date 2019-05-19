@@ -1,15 +1,18 @@
-package main
+package m3u
 
-import "github.com/grafov/m3u8"
+import (
+	"github.com/grafov/m3u8"
+	"github.com/hoshsadiq/m3ufilter/config"
+)
 
-func setSegmentValues(ms *m3u8.MediaSegment, setters []*Setter) {
+func setSegmentValues(ms *m3u8.MediaSegment, setters []*config.Setter) {
 	for _, setter := range setters {
-		if shouldIncludeSegment(ms, setter.Filters) { // ensure this ANDed
+		if ShouldIncludeSegment(ms, setter.Filters) { // ensure this ANDed
 			if setter.Name != "" {
 				ms.Title = setter.Name
 			}
 			for attrKey, attrValue := range setter.Attributes {
-				attr, err := getAttr(ms, attrKey)
+				attr, err := GetAttr(ms, attrKey)
 				if err == nil {
 					attr.Value = attrValue
 				} else {

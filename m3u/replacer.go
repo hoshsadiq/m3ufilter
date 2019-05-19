@@ -1,17 +1,21 @@
-package main
+package m3u
 
-import "github.com/grafov/m3u8"
+import (
+	"github.com/grafov/m3u8"
+	"github.com/hoshsadiq/m3ufilter/config"
+	"github.com/hoshsadiq/m3ufilter/regex"
+)
 
-func doReplace(segment *m3u8.MediaSegment, replacements *Replacement) {
+func replace(segment *m3u8.MediaSegment, replacements *config.Replacement) {
 	if replacements == nil {
 		return
 	}
 
 	if len(replacements.Name) > 0 {
 		for _, replaceAction := range replacements.Name {
-			var re = getRegexCache(replaceAction.Find)
+			var re = regex.GetCache(replaceAction.Find)
 			segment.Title = re.ReplaceAllString(segment.Title, replaceAction.Replace)
-			//attr := getAttr(segment, "tvg-name")
+			//attr := GetAttr(segment, "tvg-name")
 			//attr.Value = segment.Title
 		}
 	}
@@ -21,15 +25,14 @@ func doReplace(segment *m3u8.MediaSegment, replacements *Replacement) {
 	}
 
 	for attribKey, attrReplacements := range replacements.Attributes {
-		attr, err := getAttr(segment, attribKey)
+		attr, err := GetAttr(segment, attribKey)
 		if err != nil {
 			continue
 		}
 
 		for _, replaceAction := range attrReplacements {
-			var re = getRegexCache(replaceAction.Find)
+			var re = regex.GetCache(replaceAction.Find)
 			attr.Value = re.ReplaceAllString(attr.Value, replaceAction.Replace)
 		}
 	}
 }
-

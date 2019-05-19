@@ -1,7 +1,13 @@
-package main
+package config
 
 type Config struct {
+	Core      *Core
 	Providers []*Provider
+}
+
+type Core struct {
+	Listen        string
+	SyncTitleName bool
 }
 
 type Provider struct {

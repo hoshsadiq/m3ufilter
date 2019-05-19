@@ -1,8 +1,8 @@
-package main
+package m3u
 
 import "github.com/grafov/m3u8"
 
-func shouldIncludeSegment(segment *m3u8.MediaSegment, filters []string) bool {
+func ShouldIncludeSegment(segment *m3u8.MediaSegment, filters []string) bool {
 	for _, filter := range filters {
 		if filter == "" {
 			continue
