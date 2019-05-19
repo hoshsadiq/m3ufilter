@@ -2,23 +2,21 @@ package main
 
 import "github.com/grafov/m3u8"
 
-func shouldIncludeSegment(segment *m3u8.MediaSegment, filters *Filters) bool {
-	if filters.Name != nil {
-		if !filters.Name.shouldInclude(segment.Title) {
-			return false
+func shouldIncludeSegment(segment *m3u8.MediaSegment, filters []string) bool {
+	for _, filter := range filters {
+		if filter == "" {
+			continue
+		}
+
+		include, err := evaluateBool(segment, filter)
+		if err != nil {
+			panic(err) // todo actually we need to log this
+		}
+
+		if include {
+			return true
 		}
 	}
 
-	if len(filters.Attributes) == 0 {
-		return true
-	}
-
-	for attrib, filter := range filters.Attributes {
-		attrib, _ := getAttr(segment, attrib)
-		if !filter.shouldInclude(attrib.Value) {
-			return false
-		}
-	}
-
-	return true
+	return false
 }

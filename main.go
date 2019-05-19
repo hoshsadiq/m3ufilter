@@ -4,11 +4,14 @@ import (
 	"bufio"
 	"fmt"
 	"github.com/grafov/m3u8"
+	"github.com/maja42/goval"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"log"
 	"net/http"
 )
+
+var evaluator = goval.NewEvaluator()
 
 func main() {
 	yamlFile, err := ioutil.ReadFile("config.yaml")

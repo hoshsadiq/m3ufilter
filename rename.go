@@ -13,7 +13,7 @@ func setSegmentValues(ms *m3u8.MediaSegment, setters []*Setter) {
 				if err == nil {
 					attr.Value = attrValue
 				} else {
-					ms.Attributes = append(ms.Attributes, &m3u8.Attribute{Key:attrKey, Value:attrValue})
+					ms.Attributes = append(ms.Attributes, &m3u8.Attribute{Key: attrKey, Value: attrValue})
 				}
 			}
 		}

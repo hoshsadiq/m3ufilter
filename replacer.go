@@ -2,16 +2,17 @@ package main
 
 import "github.com/grafov/m3u8"
 
-type replaceAction struct {
-	find string
-	replace string
-}
-
 func doReplace(segment *m3u8.MediaSegment, replacements *Replacement) {
+	if replacements == nil {
+		return
+	}
+
 	if len(replacements.Name) > 0 {
 		for _, replaceAction := range replacements.Name {
 			var re = getRegexCache(replaceAction.Find)
 			segment.Title = re.ReplaceAllString(segment.Title, replaceAction.Replace)
+			//attr := getAttr(segment, "tvg-name")
+			//attr.Value = segment.Title
 		}
 	}
 

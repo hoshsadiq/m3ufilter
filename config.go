@@ -7,20 +7,14 @@ type Config struct {
 type Provider struct {
 	Uri          string
 	Replacements *Replacement
-	Filters      *Filters
+	Filters      []string
 	Setters      []*Setter
-	Groups       []*Group
 }
 
 type Setter struct {
 	Name       string
 	Attributes map[string]string
-	Filters    *Filters
-}
-
-type Group struct {
-	Name    string
-	Filters *Filters
+	Filters    []string
 }
 
 type Replacement struct {
@@ -31,9 +25,4 @@ type Replacement struct {
 type Replacer struct {
 	Find    string
 	Replace string
-}
-
-type Filters struct {
-	Name       *IncludeExcludeFilter
-	Attributes map[string]*IncludeExcludeFilter
 }
