@@ -3,8 +3,8 @@ package m3u
 import (
 	"errors"
 	"fmt"
-	"github.com/Knetic/govaluate"
 	"github.com/grafov/m3u8"
+	"github.com/hoshsadiq/m3ufilter/regex"
 	"github.com/maja42/goval"
 )
 
@@ -24,7 +24,7 @@ func evaluate(ms *m3u8.MediaSegment, expr string) (result interface{}, err error
 	}
 
 	//fmt.Printf("Evaluating `%s` using vars %v\n", expr, variables)
-	return evaluator.Evaluate(expr, variables, nil)
+	return evaluator.Evaluate(expr, variables, getEvaluatorFunctions())
 }
 
 func evaluateBool(ms *m3u8.MediaSegment, expr string) (result bool, err error) {
@@ -56,28 +56,24 @@ func evaluateStr(ms *m3u8.MediaSegment, expr string) (result string, err error) 
 	}
 }
 
-func getEvaluatorFunctions() map[string]govaluate.ExpressionFunction {
-	return map[string]govaluate.ExpressionFunction{
-		"strlen": evaluator_strlen,
-		"attr":   evaluator_attr,
+func getEvaluatorFunctions() map[string]goval.ExpressionFunction {
+	return map[string]goval.ExpressionFunction{
+		"strlen": evaluatorStrlen,
+		"match":  evaluatorMatch,
 	}
 }
 
-func evaluator_strlen(args ...interface{}) (interface{}, error) {
+func evaluatorStrlen(args ...interface{}) (interface{}, error) {
 	length := len(args[0].(string))
 	return (float64)(length), nil
 }
 
-func evaluator_attr(args ...interface{}) (interface{}, error) {
-	ms := args[0].(*m3u8.MediaSegment)
-	attrKey := args[1].(string)
+func evaluatorMatch(args ...interface{}) (interface{}, error) {
+	subject := args[0].(string)
+	regexString := args[1].(string)
 
-	attr, err := GetAttr(ms, attrKey)
-	if err != nil {
-		return nil, err
-	}
-
-	return (string)(attr.Value), nil
+	re := regex.GetCache(regexString)
+	return (bool)(re.MatchString(subject)), nil
 }
 
 //func evaluator_match(args ...interface{}) (interface{}, error) {

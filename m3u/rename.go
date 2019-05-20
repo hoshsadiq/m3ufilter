@@ -7,7 +7,7 @@ import (
 
 func setSegmentValues(ms *m3u8.MediaSegment, setters []*config.Setter) {
 	for _, setter := range setters {
-		if ShouldIncludeSegment(ms, setter.Filters) { // ensure this ANDed
+		if shouldIncludeSegment(ms, setter.Filters) { // ensure this ANDed
 			if setter.Name != "" {
 				ms.Title = setter.Name
 			}

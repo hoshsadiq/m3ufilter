@@ -3,7 +3,10 @@ package m3u
 import (
 	"github.com/grafov/m3u8"
 	"github.com/hoshsadiq/m3ufilter/config"
+	"github.com/hoshsadiq/m3ufilter/logger"
 )
+
+var log = logger.Get()
 
 func ProcessPlaylist(pl *m3u8.MediaPlaylist, providerConfig *config.Provider) (*m3u8.MediaPlaylist, error) {
 	p, e := m3u8.NewMediaPlaylist(pl.Count(), pl.Count())
@@ -19,7 +22,7 @@ func ProcessPlaylist(pl *m3u8.MediaPlaylist, providerConfig *config.Provider) (*
 		segment = segment.Clone()
 		replace(segment, providerConfig.Replacements)
 
-		if !ShouldIncludeSegment(segment, providerConfig.Filters) {
+		if !shouldIncludeSegment(segment, providerConfig.Filters) {
 			continue
 		}
 

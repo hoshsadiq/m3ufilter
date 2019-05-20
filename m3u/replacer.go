@@ -12,9 +12,13 @@ func replace(segment *m3u8.MediaSegment, replacements *config.Replacement) {
 	}
 
 	if len(replacements.Name) > 0 {
-		for _, replaceAction := range replacements.Name {
-			var re = regex.GetCache(replaceAction.Find)
-			segment.Title = re.ReplaceAllString(segment.Title, replaceAction.Replace)
+		for _, replacer := range replacements.Name {
+			var re = regex.GetCache(replacer.Find)
+			newTitle := re.ReplaceAllString(segment.Title, replacer.Replace)
+			if newTitle != segment.Title {
+				log.Tracef("title %s replaced with %s; findReplace = %v", segment.Title, newTitle, replacer)
+			}
+			segment.Title = newTitle
 			//attr := GetAttr(segment, "tvg-name")
 			//attr.Value = segment.Title
 		}
@@ -30,9 +34,12 @@ func replace(segment *m3u8.MediaSegment, replacements *config.Replacement) {
 			continue
 		}
 
-		for _, replaceAction := range attrReplacements {
-			var re = regex.GetCache(replaceAction.Find)
-			attr.Value = re.ReplaceAllString(attr.Value, replaceAction.Replace)
+		for _, replacer := range attrReplacements {
+			var re = regex.GetCache(replacer.Find)
+			newValue := re.ReplaceAllString(attr.Value, replacer.Replace)
+			if newValue != attr.Value {
+				log.Tracef("attr %v has new value = %s; findReplace = %v", attr, newValue, replacer)
+			}
 		}
 	}
 }
