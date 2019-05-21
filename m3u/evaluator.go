@@ -6,6 +6,7 @@ import (
 	"github.com/grafov/m3u8"
 	"github.com/hoshsadiq/m3ufilter/regex"
 	"github.com/maja42/goval"
+	"strings"
 )
 
 var evaluator = goval.NewEvaluator()
@@ -60,6 +61,8 @@ func getEvaluatorFunctions() map[string]goval.ExpressionFunction {
 	return map[string]goval.ExpressionFunction{
 		"strlen": evaluatorStrlen,
 		"match":  evaluatorMatch,
+		"replace":  evaluatorReplace,
+		"tvg_id":  evaluatorToTvgId,
 	}
 }
 
@@ -75,15 +78,20 @@ func evaluatorMatch(args ...interface{}) (interface{}, error) {
 	re := regex.GetCache(regexString)
 	return (bool)(re.MatchString(subject)), nil
 }
+func evaluatorReplace(args ...interface{}) (interface{}, error) {
+	subject := args[0].(string)
+	refind := args[1].(string)
+	replace := args[2].(string)
 
-//func evaluator_match(args ...interface{}) (interface{}, error) {
-//	subject := args[0].(*m3u8.MediaSegment)
-//	attrKey := args[1].(string)
-//
-//	attr, err := GetAttr(ms, attrKey)
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//	return (string)(attr.Value), nil
-//}
+	re := regex.GetCache(refind)
+	return (string)(re.ReplaceAllString(subject, replace)), nil
+}
+func evaluatorToTvgId(args ...interface{}) (interface{}, error) {
+	subject := args[0].(string)
+	subject = strings.Replace(subject, "FHD", "", -1)
+	subject = strings.Replace(subject, "HD", "", -1)
+	subject = strings.Replace(subject, "SD", "", -1)
+
+	re := regex.GetCache("[^a-zA-Z0-9]")
+	return (string)(re.ReplaceAllString(subject, "")), nil
+}

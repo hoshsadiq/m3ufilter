@@ -5,19 +5,30 @@ import (
 	"github.com/hoshsadiq/m3ufilter/config"
 )
 
-func setSegmentValues(ms *m3u8.MediaSegment, setters []*config.Setter) {
+func setSegmentValues(ms *m3u8.MediaSegment, setters []*config.Setter, syncTitleName bool) {
 	for _, setter := range setters {
-		if shouldIncludeSegment(ms, setter.Filters) { // ensure this ANDed
+		if shouldIncludeSegment(ms, setter.Filters) {
 			if setter.Name != "" {
-				ms.Title = setter.Name
+				newTitle, err := evaluateStr(ms, setter.Name)
+				if err != nil {
+					log.Errorln(err)
+				}
+				if newTitle != ms.Title {
+					log.Tracef("title %s replaced with %s; expr = %v", ms.Title, newTitle, setter.Name)
+				}
+
+				ms.Title = newTitle
+				if syncTitleName {
+					SetAttr(ms, "tvg-name", newTitle)
+				}
 			}
 			for attrKey, attrValue := range setter.Attributes {
-				attr, err := GetAttr(ms, attrKey)
-				if err == nil {
-					attr.Value = attrValue
-				} else {
-					ms.Attributes = append(ms.Attributes, &m3u8.Attribute{Key: attrKey, Value: attrValue})
+				newValue, err := evaluateStr(ms, attrValue)
+				if err != nil {
+					log.Errorln(err)
 				}
+
+				SetAttr(ms, attrKey, newValue)
 			}
 		}
 	}

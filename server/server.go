@@ -47,7 +47,7 @@ func GetPlaylist(w http.ResponseWriter, r *http.Request, conf *config.Config, cl
 		case m3u8.MEDIA:
 			log.Debugf("found media type %v", listType)
 			mediapl := p.(*m3u8.MediaPlaylist)
-			newp, err := m3u.ProcessPlaylist(mediapl, provider)
+			newp, err := m3u.ProcessPlaylist(mediapl, provider, conf.Core.SyncTitleName)
 			if err != nil {
 				log.Errorf("unable to parse %s, err = %v", provider.Uri, err)
 				continue

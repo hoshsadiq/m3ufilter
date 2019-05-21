@@ -6,7 +6,7 @@ import (
 	"github.com/hoshsadiq/m3ufilter/regex"
 )
 
-func replace(segment *m3u8.MediaSegment, replacements *config.Replacement) {
+func replace(ms *m3u8.MediaSegment, replacements *config.Replacement, syncTitleName bool) {
 	if replacements == nil {
 		return
 	}
@@ -14,13 +14,14 @@ func replace(segment *m3u8.MediaSegment, replacements *config.Replacement) {
 	if len(replacements.Name) > 0 {
 		for _, replacer := range replacements.Name {
 			var re = regex.GetCache(replacer.Find)
-			newTitle := re.ReplaceAllString(segment.Title, replacer.Replace)
-			if newTitle != segment.Title {
-				log.Tracef("title %s replaced with %s; findReplace = %v", segment.Title, newTitle, replacer)
+			newTitle := re.ReplaceAllString(ms.Title, replacer.Replace)
+			if newTitle != ms.Title {
+				log.Tracef("title %s replaced with %s; findReplace = %v", ms.Title, newTitle, replacer)
 			}
-			segment.Title = newTitle
-			//attr := GetAttr(segment, "tvg-name")
-			//attr.Value = segment.Title
+			ms.Title = newTitle
+			if syncTitleName {
+				SetAttr(ms, "tvg-name", newTitle)
+			}
 		}
 	}
 
@@ -29,7 +30,7 @@ func replace(segment *m3u8.MediaSegment, replacements *config.Replacement) {
 	}
 
 	for attribKey, attrReplacements := range replacements.Attributes {
-		attr, err := GetAttr(segment, attribKey)
+		attr, err := GetAttr(ms, attribKey)
 		if err != nil {
 			continue
 		}

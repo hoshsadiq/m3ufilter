@@ -7,7 +7,7 @@ type Config struct {
 
 type Core struct {
 	Listen        string
-	SyncTitleName bool
+	SyncTitleName bool `yaml:"sync_title_name"`
 }
 
 type Provider struct {
