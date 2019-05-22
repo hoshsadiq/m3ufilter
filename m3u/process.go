@@ -5,6 +5,8 @@ import (
 	"github.com/grafov/m3u8"
 	"github.com/hoshsadiq/m3ufilter/config"
 	"github.com/hoshsadiq/m3ufilter/logger"
+	"github.com/hoshsadiq/m3ufilter/util"
+	"github.com/hoshsadiq/m3ufilter/writer"
 	"io"
 	"net/http"
 )
@@ -39,10 +41,8 @@ func GetPlaylist(w io.Writer, conf *config.Config) {
 				log.Errorf("unable to parse %s, err = %v", provider.Uri, err)
 				continue
 			}
-			_, err = w.Write(newp.Encode().Bytes())
-			if err != nil {
-				log.Errorf("unable to write new playlist, err = %v", provider.Uri, err)
-			}
+
+			writer.WriteOutput(conf.Core.Output, w, newp)
 		default:
 			log.Errorf("found unsupported media type. code needs to be updated. Type = %v, err = %v", listType, err)
 		}
@@ -55,27 +55,28 @@ func processPlaylist(pl *m3u8.MediaPlaylist, providerConfig *config.Provider, sy
 		return nil, err
 	}
 
-	for _, segment := range pl.Segments {
-		if segment == nil {
+	for _, ms := range pl.Segments {
+		if ms == nil {
 			continue
 		}
+		log.Debugf("Processing segment: tvg-id=%s; channel=%s", util.GetAttr(ms, "tvg-id").Value, ms.Title)
 
-		segment = segment.Clone()
+		ms = ms.Clone()
 		//segment.Title, err = strconv.Unquote("\"" + segment.Title + "\"")
 		//if err != nil {
 		//	log.Errorf("error unquoting %s", segment.Title)
 		//}
 
-		replace(segment, providerConfig.Replacements, syncTitleName)
+		replace(ms, providerConfig.Replacements, syncTitleName)
 
-		if !shouldIncludeSegment(segment, providerConfig.Filters) {
+		if !shouldIncludeSegment(ms, providerConfig.Filters) {
 			continue
 		}
 
-		setSegmentValues(segment, providerConfig.Setters, syncTitleName)
+		setSegmentValues(ms, providerConfig.Setters, syncTitleName)
 		//renameGroups(segment, providerConfig.Groups)
 
-		err = p.AppendSegment(segment)
+		err = p.AppendSegment(ms)
 		if err != nil {
 			return nil, err
 		}

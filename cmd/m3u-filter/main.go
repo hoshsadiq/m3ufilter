@@ -2,14 +2,18 @@ package main
 
 import (
 	"flag"
-	"github.com/hoshsadiq/m3ufilter/app"
+	"github.com/hoshsadiq/m3ufilter/config"
+	"github.com/hoshsadiq/m3ufilter/logger"
+	"github.com/hoshsadiq/m3ufilter/m3u"
+	"github.com/hoshsadiq/m3ufilter/server"
 	"github.com/mitchellh/go-homedir"
+	"gopkg.in/yaml.v1"
+	"io/ioutil"
 	"os"
 )
 
 func main() {
 	configFile := flag.String("config", "~/.m3u.conf", "Config file location")
-	useServer := flag.Bool("server", false, "Run a server to retrieve the playlist as a URL")
 	playlistOutput := flag.String("playlist-output", "", "Where to output the playlist data. Ignored when using -server flag. Defaults to stdout")
 	logOutput := flag.String("log-output", "", "Where to output logs. Defaults to stderr")
 	flag.Parse()
@@ -19,14 +23,36 @@ func main() {
 		panic(e)
 	}
 
-	app.Run(path, *useServer, fd(*playlistOutput, false), fd(*logOutput, true))
+	run(path, fd(*playlistOutput, false), fd(*logOutput, true))
 }
 
-func fd(filename string, useStderr bool) *os.File {
+func run(configFilename string, stdout *os.File, stderr *os.File) {
+	log := logger.Get()
+	log.SetOutput(stderr)
+
+	yamlFile, err := ioutil.ReadFile(configFilename)
+	if err != nil {
+		log.Fatalf("could not read config file %s, err = %v", configFilename, err)
+	}
+
+	var conf *config.Config
+	err = yaml.Unmarshal([]byte(yamlFile), &conf)
+	if err != nil {
+		log.Fatalf("could not parse config file %s, err = %v", configFilename, err)
+	}
+
+	if conf.Core.ServerListen != "" {
+		server.Serve(conf)
+	} else {
+		m3u.GetPlaylist(stdout, conf)
+	}
+}
+
+func fd(filename string, defaultStderr bool) *os.File {
 	if filename == "-" {
 		return os.Stdout
 	}
-	if filename == "" && useStderr {
+	if filename == "" && defaultStderr {
 		return os.Stderr
 	}
 	if filename == "" {

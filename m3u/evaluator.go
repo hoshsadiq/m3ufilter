@@ -88,20 +88,21 @@ func evaluatorReplace(args ...interface{}) (interface{}, error) {
 }
 func evaluatorToTvgId(args ...interface{}) (interface{}, error) {
 	subject := args[0].(string)
-	subject = strings.Replace(subject, "FHD", "", -1)
-	subject = strings.Replace(subject, "HD", "", -1)
-	subject = strings.Replace(subject, "SD", "", -1)
+	re := regex.GetCache("(?i)\b(SD|HD|FHD)\b")
+
+	subject = re.ReplaceAllString(subject, "")
 	subject = strings.TrimSpace(subject)
 
-	re := regex.GetCache("[^a-zA-Z0-9]")
+	re = regex.GetCache("[^a-zA-Z0-9]")
 	return re.ReplaceAllString(subject, ""), nil
 }
 
 // the below might come in handy.
 //func createNewTvgId(title string) string {
-//	title = strings.Replace(title, "FHD", "", -1)
-//	title = strings.Replace(title, "HD", "", -1)
-//	title = strings.Replace(title, "SD", "", -1)
+//	title := args[0].(string)
+//	re := regex.GetCache("(?i)\b(SD|HD|FHD)\b")
+//
+//	title = re.ReplaceAllString(title, "")
 //	title = strings.TrimSpace(title)
 //
 //	// todo this regex needs to be configurable

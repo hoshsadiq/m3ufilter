@@ -3,6 +3,7 @@ package m3u
 import (
 	"github.com/grafov/m3u8"
 	"github.com/hoshsadiq/m3ufilter/config"
+	"github.com/hoshsadiq/m3ufilter/util"
 )
 
 func setSegmentValues(ms *m3u8.MediaSegment, setters []*config.Setter, syncTitleName bool) {
@@ -19,7 +20,7 @@ func setSegmentValues(ms *m3u8.MediaSegment, setters []*config.Setter, syncTitle
 
 				ms.Title = newTitle
 				if syncTitleName {
-					SetAttr(ms, "tvg-name", newTitle)
+					util.SetAttr(ms, "tvg-name", newTitle)
 				}
 			}
 			for attrKey, attrValue := range setter.Attributes {
@@ -28,7 +29,7 @@ func setSegmentValues(ms *m3u8.MediaSegment, setters []*config.Setter, syncTitle
 					log.Errorln(err)
 				}
 
-				SetAttr(ms, attrKey, newValue)
+				util.SetAttr(ms, attrKey, newValue)
 			}
 		}
 	}

@@ -18,6 +18,6 @@ func Serve(conf *config.Config) {
 		m3u.GetPlaylist(w, conf)
 	})
 
-	server := &http.Server{Addr: conf.Core.Listen}
+	server := &http.Server{Addr: conf.Core.ServerListen}
 	log.Fatal(server.ListenAndServe())
 }
