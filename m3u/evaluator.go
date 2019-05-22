@@ -59,9 +59,9 @@ func evaluateStr(ms *m3u8.MediaSegment, expr string) (result string, err error) 
 
 func getEvaluatorFunctions() map[string]goval.ExpressionFunction {
 	return map[string]goval.ExpressionFunction{
-		"strlen": evaluatorStrlen,
-		"match":  evaluatorMatch,
-		"replace":  evaluatorReplace,
+		"strlen":  evaluatorStrlen,
+		"match":   evaluatorMatch,
+		"replace": evaluatorReplace,
 		"tvg_id":  evaluatorToTvgId,
 	}
 }
@@ -91,7 +91,42 @@ func evaluatorToTvgId(args ...interface{}) (interface{}, error) {
 	subject = strings.Replace(subject, "FHD", "", -1)
 	subject = strings.Replace(subject, "HD", "", -1)
 	subject = strings.Replace(subject, "SD", "", -1)
+	subject = strings.TrimSpace(subject)
 
 	re := regex.GetCache("[^a-zA-Z0-9]")
-	return (string)(re.ReplaceAllString(subject, "")), nil
+	return re.ReplaceAllString(subject, ""), nil
 }
+
+// the below might come in handy.
+//func createNewTvgId(title string) string {
+//	title = strings.Replace(title, "FHD", "", -1)
+//	title = strings.Replace(title, "HD", "", -1)
+//	title = strings.Replace(title, "SD", "", -1)
+//	title = strings.TrimSpace(title)
+//
+//	// todo this regex needs to be configurable
+//	countryRe := regex.GetCache("(?i)(^(USA?|UK|NL)|\\.(uk|us|nl))\b")
+//	country := countryRe.ReplaceAllString(title, "$2|$3")
+//
+//	re := regex.GetCache(fmt.Sprintf("(^(%s)|[^a-zA-Z0-9])", country))
+//	parsedTitle := re.ReplaceAllString(title, "")
+//
+//	countryMatches := strings.Split(country, "|")
+//	if countryMatches[1] != "" {
+//		country = countryMatches[1]
+//	} else {
+//		country = countryMatches[0]
+//		if country == "USA" {
+//			country = "us"
+//		}
+//	}
+//
+//	country = strings.ToLower(country)
+//
+//	if country != "" {
+//		return parsedTitle + "." + country
+//	}
+//
+//	log.Warnf("Tried to guess new tvg-id, but country was not found for %s", title)
+//	return parsedTitle
+//}
