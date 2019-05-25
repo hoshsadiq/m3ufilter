@@ -7,7 +7,6 @@ import (
 	"github.com/hoshsadiq/m3ufilter/regex"
 	"github.com/maja42/goval"
 	"github.com/maja42/no-comment"
-	"regexp"
 	"strings"
 )
 

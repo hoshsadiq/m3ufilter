@@ -7,7 +7,7 @@ import (
 	"github.com/hoshsadiq/m3ufilter/m3u"
 	"github.com/hoshsadiq/m3ufilter/server"
 	"github.com/mitchellh/go-homedir"
-	"gopkg.in/yaml.v1"
+	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
 )
