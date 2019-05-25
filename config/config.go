@@ -6,15 +6,15 @@ type Config struct {
 }
 
 type Core struct {
-	ServerListen        string
+	ServerListen  string
 	SyncTitleName bool `yaml:"sync_title_name"`
 	Output        string
 }
 
 type Provider struct {
-	Uri          string
-	Filters      []string
-	Setters      []*Setter
+	Uri     string
+	Filters []string
+	Setters []*Setter
 }
 
 type Setter struct {

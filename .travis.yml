@@ -1,0 +1,34 @@
+language: go
+
+before_install:
+  - go get github.com/mitchellh/gox # gox simplifies building for multiple architectures
+
+go:
+  - 1.11.x
+  - 1.12.x
+
+services:
+  - docker
+
+git:
+  depth: 1
+
+env:
+  - GO111MODULE=on CGO_ENABLED=0 GOOS=linux GOARCH=amd64
+  - GO111MODULE=on CGO_ENABLED=0 GOOS=linux GOARCH=386
+  - GO111MODULE=on CGO_ENABLED=0 GOOS=linux GOARCH=arm
+  - GO111MODULE=on CGO_ENABLED=0 GOOS=linux GOARCH=arm64
+  - GO111MODULE=on CGO_ENABLED=0 GOOS=windows GOARCH=amd64
+  - GO111MODULE=on CGO_ENABLED=0 GOOS=windows GOARCH=386
+  - GO111MODULE=on CGO_ENABLED=0 GOOS=darwin GOARCH=amd64
+  - GO111MODULE=on CGO_ENABLED=0 GOOS=darwin GOARCH=386
+
+install: true
+
+script:
+  - diff -u <(echo -n) <(gofmt -d .)
+  - go vet $(go list ./... | grep -v /vendor/)
+  - go test -v -race ./...
+  - mkdir build
+  - go build -o build/m3u-filter_$GOOS_$GOARCH github.com/hoshsadiq/m3ufilter/cmd/m3u-filter
+  - ls -la build/
