@@ -6,12 +6,18 @@ import (
 	"github.com/grafov/m3u8"
 	"github.com/hoshsadiq/m3ufilter/regex"
 	"github.com/maja42/goval"
+	"github.com/maja42/no-comment"
+	"regexp"
 	"strings"
 )
 
 var evaluator = goval.NewEvaluator()
 
 func evaluate(ms *m3u8.MediaSegment, expr string) (result interface{}, err error) {
+	if expr[0] == '=' {
+		return strings.TrimSpace(expr[1:]), nil
+	}
+
 	attrs := make(map[string]string)
 	for _, attr := range ms.Attributes {
 		attrs[attr.Key] = attr.Value
@@ -23,6 +29,8 @@ func evaluate(ms *m3u8.MediaSegment, expr string) (result interface{}, err error
 		"Duration": ms.Duration,
 		"Attr":     attrs,
 	}
+
+	expr = nocomment.StripCStyleComments(expr)
 
 	//fmt.Printf("Evaluating `%s` using vars %v\n", expr, variables)
 	return evaluator.Evaluate(expr, variables, getEvaluatorFunctions())
@@ -88,46 +96,15 @@ func evaluatorReplace(args ...interface{}) (interface{}, error) {
 }
 func evaluatorToTvgId(args ...interface{}) (interface{}, error) {
 	subject := args[0].(string)
-	re := regex.GetCache("(?i)\b(SD|HD|FHD)\b")
+	re := regex.GetCache(`(?i)\b(SD|HD|FHD)\b`)
 
 	subject = re.ReplaceAllString(subject, "")
+
+	subject = strings.Replace(subject, "&", "and", -1)
 	subject = strings.TrimSpace(subject)
 
-	re = regex.GetCache("[^a-zA-Z0-9]")
-	return re.ReplaceAllString(subject, ""), nil
-}
+	re = regex.GetCache(`[^a-zA-Z0-9]`)
+	tvgId := re.ReplaceAllString(subject, "")
 
-// the below might come in handy.
-//func createNewTvgId(title string) string {
-//	title := args[0].(string)
-//	re := regex.GetCache("(?i)\b(SD|HD|FHD)\b")
-//
-//	title = re.ReplaceAllString(title, "")
-//	title = strings.TrimSpace(title)
-//
-//	// todo this regex needs to be configurable
-//	countryRe := regex.GetCache("(?i)(^(USA?|UK|NL)|\\.(uk|us|nl))\b")
-//	country := countryRe.ReplaceAllString(title, "$2|$3")
-//
-//	re := regex.GetCache(fmt.Sprintf("(^(%s)|[^a-zA-Z0-9])", country))
-//	parsedTitle := re.ReplaceAllString(title, "")
-//
-//	countryMatches := strings.Split(country, "|")
-//	if countryMatches[1] != "" {
-//		country = countryMatches[1]
-//	} else {
-//		country = countryMatches[0]
-//		if country == "USA" {
-//			country = "us"
-//		}
-//	}
-//
-//	country = strings.ToLower(country)
-//
-//	if country != "" {
-//		return parsedTitle + "." + country
-//	}
-//
-//	log.Warnf("Tried to guess new tvg-id, but country was not found for %s", title)
-//	return parsedTitle
-//}
+	return tvgId, nil
+}

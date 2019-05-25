@@ -6,9 +6,9 @@ import (
 	"github.com/hoshsadiq/m3ufilter/util"
 )
 
-func setSegmentValues(ms *m3u8.MediaSegment, setters []*config.Setter, syncTitleName bool) {
+func setSegmentValues(ms *m3u8.MediaSegment, setters []*config.Setter) {
 	for _, setter := range setters {
-		if shouldIncludeSegment(ms, setter.Filters) {
+		if len(setter.Filters) == 0 || shouldIncludeSegment(ms, setter.Filters) {
 			if setter.Name != "" {
 				newTitle, err := evaluateStr(ms, setter.Name)
 				if err != nil {
@@ -19,9 +19,6 @@ func setSegmentValues(ms *m3u8.MediaSegment, setters []*config.Setter, syncTitle
 				}
 
 				ms.Title = newTitle
-				if syncTitleName {
-					util.SetAttr(ms, "tvg-name", newTitle)
-				}
 			}
 			for attrKey, attrValue := range setter.Attributes {
 				newValue, err := evaluateStr(ms, attrValue)

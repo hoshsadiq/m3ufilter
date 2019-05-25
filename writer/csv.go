@@ -34,7 +34,7 @@ func writeCsv(w io.Writer, pl *m3u8.MediaPlaylist) {
 			util.GetAttr(ms, "group-title").Value,
 			util.GetAttr(ms, "tvg-name").Value,
 			util.GetAttr(ms, "tvg-logo").Value,
-			util.GetAttr(ms, "channel-name").Value,
+			ms.Title,
 		}
 
 		err = writer.Write(row)

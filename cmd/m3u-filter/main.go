@@ -14,8 +14,8 @@ import (
 
 func main() {
 	configFile := flag.String("config", "~/.m3u.conf", "Config file location")
-	playlistOutput := flag.String("playlist-output", "", "Where to output the playlist data. Ignored when using -server flag. Defaults to stdout")
-	logOutput := flag.String("log-output", "", "Where to output logs. Defaults to stderr")
+	playlistOutput := flag.String("playlist", "", "Where to output the playlist data. Ignored when using -server flag. Defaults to stdout")
+	logOutput := flag.String("log", "", "Where to output logs. Defaults to stderr")
 	flag.Parse()
 
 	path, e := homedir.Expand(*configFile)

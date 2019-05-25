@@ -31,19 +31,9 @@ providers:
     filters:
       - match(Attr["group-title"], "UK.*") && !match(Title, "^24/7")
       - match(Attr["tvg-id"], "3e.ie")
-    replacements:
-      name:
-        - find: "[\\s\\:\\|]+"
-          replace: " "
-        - find: "^VIP "
-          replace: ""
-      attributes:
-        tvg-name:
-          - find: "[\\s\\:\\|]+"
-            replace: " "
-          - find: "^VIP "
-            replace: ""
     setters:
+      - name: replace(Title, "[\\s\\:\\|]+", " ")
+      - name: replace(Title, "^VIP ", "")
       - name: replace(Title, "NEWS", "News")
         attributes:
           tvg-id: tvg_id(Title) + ".us"
@@ -76,6 +66,36 @@ The following functions are available:
     ```
 
     The login behind this will be improved, but right now, all it does is simply remove SD/HD/FHD from the title and any character that isn't a-zA-Z0-9.
+
+#### gotchas
+Due to the underlying library used for the logic parsing, setting a value to a generic string is not straight forward and must be double quoted, first with single quote, then double quote.
+
+For example, if you want to set the for a channel to "My Channel", you have to do is as follows:
+```yaml
+setters:
+  - name: '"My Channel"' # this works
+    filters:
+      - Title == "some criteria"
+  - name: "My Channel" # this is invalid
+    filters:
+      - Title == "some criteria"
+  - name: 'My Channel' # this is invalid
+    filters:
+      - Title == "some criteria"
+  - name: My Channel # this is invalid
+    filters:
+      - Title == "some criteria"
+```
+
+In theory all of the above should be valid, but until a solution has been thought of, the workaround is to simply prefix it with an equals, e.g.:
+```yaml
+setters:
+  - name: = My Channel
+    filters:
+      - Title == "some criteria"
+```
+
+Note that prefixing it with an equals marks the whole expression as literal string, excluding the equals. If you want a string with an equals in front of the text, you'll need to use two equals.
 
 ## Future plans
 The idea behind this is to a be one stop shop for generating both xmltv and m3u files from any source.

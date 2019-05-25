@@ -67,14 +67,14 @@ func processPlaylist(pl *m3u8.MediaPlaylist, providerConfig *config.Provider, sy
 		//	log.Errorf("error unquoting %s", segment.Title)
 		//}
 
-		replace(ms, providerConfig.Replacements, syncTitleName)
-
 		if !shouldIncludeSegment(ms, providerConfig.Filters) {
 			continue
 		}
 
-		setSegmentValues(ms, providerConfig.Setters, syncTitleName)
-		//renameGroups(segment, providerConfig.Groups)
+		setSegmentValues(ms, providerConfig.Setters)
+		if syncTitleName {
+			util.SetAttr(ms, "tvg-name", ms.Title)
+		}
 
 		err = p.AppendSegment(ms)
 		if err != nil {

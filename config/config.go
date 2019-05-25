@@ -13,7 +13,6 @@ type Core struct {
 
 type Provider struct {
 	Uri          string
-	Replacements *Replacement
 	Filters      []string
 	Setters      []*Setter
 }

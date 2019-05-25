@@ -15,9 +15,9 @@ func Get() *logrus.Logger {
 			FullTimestamp: true,
 		})
 
-		logger.SetReportCaller(true)
+		//logger.SetReportCaller(true)
 
-		logger.SetLevel(logrus.DebugLevel)
+		//logger.SetLevel(logrus.DebugLevel)
 	}
 
 	return logger
