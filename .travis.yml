@@ -21,11 +21,15 @@ env:
 
 install: true
 
-script:
+before_script:
+  - mkdir -p build
   - diff -u <(echo -n) <(gofmt -d .)
   - go mod vendor
   - go vet $(go list ./... | grep -v /vendor/)
-  - go test -v -race ./...
-  - mkdir build
+  - go test -v ./... # todo we don't actually have any tests yet, but soon!
+
+script:
   - go build -o build/m3u-filter_$GOOS_$GOARCH github.com/hoshsadiq/m3ufilter/cmd/m3u-filter
+
+after_script:
   - ls -la build/
