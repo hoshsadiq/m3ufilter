@@ -23,7 +23,7 @@ before_script:
   - go test -v ./... # todo we don't actually have any tests yet, but soon!
 
 script:
-  - gox -osarch "linux/amd64 linux/386 windows/amd64 windows/386 darwin/amd64 darwin/386" -output "build/m3u-filter_{{.OS}}_{{.Arch}}" github.com/hoshsadiq/m3ufilter/cmd/m3u-filter
+  - gox -osarch "linux/amd64 linux/386 linux/arm linux/arm64 windows/amd64 windows/386 darwin/amd64 darwin/386" -output "build/m3u-filter_{{.OS}}_{{.Arch}}" github.com/hoshsadiq/m3ufilter/cmd/m3u-filter
 
 after_script:
   - ls -la build/
