@@ -10,26 +10,20 @@ git:
   depth: 1
 
 env:
-  - GO111MODULE=on CGO_ENABLED=0 GOOS=linux GOARCH=amd64
-  - GO111MODULE=on CGO_ENABLED=0 GOOS=linux GOARCH=386
-  - GO111MODULE=on CGO_ENABLED=0 GOOS=linux GOARCH=arm
-  - GO111MODULE=on CGO_ENABLED=0 GOOS=linux GOARCH=arm64
-  - GO111MODULE=on CGO_ENABLED=0 GOOS=windows GOARCH=amd64
-  - GO111MODULE=on CGO_ENABLED=0 GOOS=windows GOARCH=386
-  - GO111MODULE=on CGO_ENABLED=0 GOOS=darwin GOARCH=amd64
-  - GO111MODULE=on CGO_ENABLED=0 GOOS=darwin GOARCH=386
-
-install: true
+  global:
+    - GO111MODULE=on
+    - CGO_ENABLED=0
 
 before_script:
   - mkdir -p build
+  - go get github.com/mitchellh/gox
   - diff -u <(echo -n) <(gofmt -d .)
   - go mod vendor
   - go vet $(go list ./... | grep -v /vendor/)
   - go test -v ./... # todo we don't actually have any tests yet, but soon!
 
 script:
-  - go build -o build/m3u-filter_$GOOS_$GOARCH github.com/hoshsadiq/m3ufilter/cmd/m3u-filter
+  - gox -osarch "linux/amd64 linux/386 windows/amd64 windows/386 darwin/amd64 darwin/386" -output "build/m3u-filter_{{.OS}}_{{.Arch}}" github.com/hoshsadiq/m3ufilter/cmd/m3u-filter
 
 after_script:
   - ls -la build/
