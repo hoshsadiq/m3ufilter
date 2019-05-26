@@ -27,3 +27,14 @@ script:
 
 after_script:
   - ls -la build/
+
+deploy:
+  - provider: releases
+    skip_cleanup: true
+    file_glob: true
+    file: build/*
+    api_key:
+      secure: CnjUhD6PoSZ1qv+/OjdJ7c1QLyPX3X31hXRMkgcG4trP8W+QrDDmixYpcJbHdc/mNrFsiJ8/L2Qm8mLUnSaLIf/HbSHp0EzxKuDU2Rdb2MGRuDUqLyWSHGbY67otTXvEYVagoFmg8s6cEVincDMckD47uyw5L2NduwyNs0hg1TizVZyTnfAba2WsKSwHJpA01yVRTuIH92J38jFWUjqZkgDyMVYG7G7vb+mU3WNLyxBfzJVkLXzOWx0ELyxWi6X9BT/8Ib0Q/m3SUFan3XteQlMkeSEUPnbdmfL4FYlm/oXfqrigunRCp7edD1wgnrP3sHkKbl5NtHU5I6BHFaiT42M8Rr1Snp9wOzvCtjDb+1Ory84+L8iYcueXh0SXNvgCxkZBYsiFVsOEwz8dWpFqVW6R8ADY6x65VhEyBICbRL2kbRgpZyfTlb9nJKw6ZlWwmPDracxKexGD62BTSdlvL0s8C2Y/aJf90oYOAPvv0VuvzE4CUrPod7eKKR/saHhmzrYolLh4Hta552u0uHZNRTsLxVJXuW2QZfKodNJFQWsrDNADPd69Fg1m3USgkspClfb0uQkt5gpaqVE9x9BP0qGjzJ2P/WqNt36qTKLxbtIMcrdmIj7DalxgBeBy9c9OAljs6MjVdcbJWo0Sht7JE5jdM4lVhVjvSRBtgYRInIA=
+    on:
+      repo: hoshsadiq/m3ufilter
+      tags: true
