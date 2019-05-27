@@ -23,7 +23,7 @@ func evaluate(ms *m3u8.MediaSegment, expr string) (result interface{}, err error
 	}
 
 	variables := map[string]interface{}{
-		"Title":    ms.Title,
+		"Name":    ms.Title,
 		"Uri":      ms.URI,
 		"Duration": ms.Duration,
 		"Attr":     attrs,
@@ -70,6 +70,7 @@ func getEvaluatorFunctions() map[string]goval.ExpressionFunction {
 		"match":   evaluatorMatch,
 		"replace": evaluatorReplace,
 		"tvg_id":  evaluatorToTvgId,
+		"title":  evaluatorTitle,
 	}
 }
 
@@ -106,4 +107,16 @@ func evaluatorToTvgId(args ...interface{}) (interface{}, error) {
 	tvgId := re.ReplaceAllString(subject, "")
 
 	return tvgId, nil
+}
+
+func evaluatorTitle(args ...interface{}) (interface{}, error) {
+	subject := args[0].(string)
+	re := regex.GetCache(`(?i)\b(SD|HD|FHD)\b`)
+
+	subject = re.ReplaceAllStringFunc(subject, func(s string) string {
+		return strings.ToUpper(s)
+	})
+
+	subject = strings.Title(subject)
+	return strings.TrimSpace(subject), nil
 }

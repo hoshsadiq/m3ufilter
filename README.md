@@ -29,20 +29,20 @@ core:
 providers:
   - uri: file:///path/to/m3u/playlist.m3u
     filters:
-      - match(Attr["group-title"], "UK.*") && !match(Title, "^24/7")
+      - match(Attr["group-title"], "UK.*") && !match(Name, "^24/7")
       - match(Attr["tvg-id"], "3e.ie")
     setters:
-      - name: replace(Title, "[\\s\\:\\|]+", " ")
-      - name: replace(Title, "^VIP ", "")
-      - name: replace(Title, "NEWS", "News")
+      - name: replace(Name, "[\\s\\:\\|]+", " ")
+      - name: replace(Name, "^VIP ", "")
+      - name: replace(Name, "NEWS", "News")
         attributes:
-          tvg-id: tvg_id(Title) + ".us"
+          tvg-id: tvg_id(Name) + ".us"
         filters:
-          - Title == "ABC News"
-          - Title == "USA ABC NEWS HD"
-          - Title == "USA CNN"
-          - Title == "CNN"
-          - Title == "CNN HD"
+          - Name == "ABC News"
+          - Name == "USA ABC NEWS HD"
+          - Name == "USA CNN"
+          - Name == "CNN"
+          - Name == "CNN HD"
 ```
 
 The following functions are available:
@@ -75,16 +75,16 @@ For example, if you want to set the for a channel to "My Channel", you have to d
 setters:
   - name: '"My Channel"' # this works
     filters:
-      - Title == "some criteria"
+      - Name == "some criteria"
   - name: "My Channel" # this is invalid
     filters:
-      - Title == "some criteria"
+      - Name == "some criteria"
   - name: 'My Channel' # this is invalid
     filters:
-      - Title == "some criteria"
+      - Name == "some criteria"
   - name: My Channel # this is invalid
     filters:
-      - Title == "some criteria"
+      - Name == "some criteria"
 ```
 
 In theory all of the above should be valid, but until a solution has been thought of, the workaround is to simply prefix it with an equals, e.g.:
@@ -92,7 +92,7 @@ In theory all of the above should be valid, but until a solution has been though
 setters:
   - name: = My Channel
     filters:
-      - Title == "some criteria"
+      - Name == "some criteria"
 ```
 
 Note that prefixing it with an equals marks the whole expression as literal string, excluding the equals. If you want a string with an equals in front of the text, you'll need to use two equals.
