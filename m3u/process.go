@@ -6,18 +6,17 @@ import (
 	"github.com/hoshsadiq/m3ufilter/config"
 	"github.com/hoshsadiq/m3ufilter/logger"
 	"github.com/hoshsadiq/m3ufilter/util"
-	"github.com/hoshsadiq/m3ufilter/writer"
-	"io"
 	"net/http"
 )
 
 var log = logger.Get()
 
-func GetPlaylist(w io.Writer, conf *config.Config) {
+func GetPlaylist(conf *config.Config) []*m3u8.MediaPlaylist {
 	transport := &http.Transport{}
 	transport.RegisterProtocol("file", http.NewFileTransport(http.Dir("/")))
 	client := &http.Client{Transport: transport}
 
+	playlists := []*m3u8.MediaPlaylist{}
 	for _, provider := range conf.Providers {
 		log.Infof("reading from provder %s", provider.Uri)
 		resp, err := client.Get(provider.Uri)
@@ -42,11 +41,13 @@ func GetPlaylist(w io.Writer, conf *config.Config) {
 				continue
 			}
 
-			writer.WriteOutput(conf.Core.Output, w, newp)
+			playlists = append(playlists, newp)
 		default:
 			log.Errorf("found unsupported media type. code needs to be updated. Type = %v, err = %v", listType, err)
 		}
 	}
+
+	return playlists
 }
 
 func processPlaylist(pl *m3u8.MediaPlaylist, providerConfig *config.Provider, syncTitleName bool) (*m3u8.MediaPlaylist, error) {

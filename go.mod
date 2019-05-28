@@ -5,6 +5,7 @@ require (
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/maja42/goval v1.0.0
 	github.com/maja42/no-comment v0.0.0-20180113082502-512948848672
+	github.com/mileusna/crontab v0.0.0-20180909013013-f182897de5d8
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/sirupsen/logrus v1.4.2
 	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect

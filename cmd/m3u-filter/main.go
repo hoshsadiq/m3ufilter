@@ -6,6 +6,7 @@ import (
 	"github.com/hoshsadiq/m3ufilter/logger"
 	"github.com/hoshsadiq/m3ufilter/m3u"
 	"github.com/hoshsadiq/m3ufilter/server"
+	"github.com/hoshsadiq/m3ufilter/writer"
 	"github.com/mitchellh/go-homedir"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
@@ -44,7 +45,8 @@ func run(configFilename string, stdout *os.File, stderr *os.File) {
 	if conf.Core.ServerListen != "" {
 		server.Serve(conf)
 	} else {
-		m3u.GetPlaylist(stdout, conf)
+		playlists := m3u.GetPlaylist(conf)
+		writer.WriteOutput(conf.Core.Output, stdout, playlists)
 	}
 }
 

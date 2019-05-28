@@ -5,9 +5,11 @@ import (
 	"io"
 )
 
-func writeM3U(w io.Writer, mediaPlaylist *m3u8.MediaPlaylist) {
-	_, err := w.Write(mediaPlaylist.Encode().Bytes())
-	if err != nil {
-		log.Errorf("unable to write new playlist, err = %v", err)
+func writeM3U(w io.Writer, playlists []*m3u8.MediaPlaylist) {
+	for _, pl := range playlists {
+		_, err := w.Write(pl.Encode().Bytes())
+		if err != nil {
+			log.Errorf("unable to write new playlist, err = %v", err)
+		}
 	}
 }

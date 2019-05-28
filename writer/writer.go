@@ -9,7 +9,7 @@ import (
 
 var log = logger.Get()
 
-func WriteOutput(Output string, w io.Writer, mediaPlaylist *m3u8.MediaPlaylist) {
+func WriteOutput(Output string, w io.Writer, mediaPlaylist []*m3u8.MediaPlaylist) {
 	switch Output {
 	case "m3u":
 		writeM3U(w, mediaPlaylist)
