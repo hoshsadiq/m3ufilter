@@ -17,6 +17,11 @@ var playlists *[]*m3u8.MediaPlaylist
 var lock *bool
 
 func Serve(conf *config.Config) {
+	schedule := conf.Core.UpdateSchedule
+	if schedule == "" {
+		schedule = "*/24 * * * *"
+	}
+
 	log.Info("Scheduling cronjob to periodically update playlist.")
 	ctab := crontab.New()
 	ctab.MustAddJob(conf.Core.UpdateSchedule, func() {
@@ -24,7 +29,7 @@ func Serve(conf *config.Config) {
 	})
 
 	log.Info("Parsing for the first time...")
-	updatePlaylist(conf)
+	ctab.RunAll()
 
 	log.Info("starting server")
 	http.HandleFunc("/playlist.m3u", func(w http.ResponseWriter, r *http.Request) {
