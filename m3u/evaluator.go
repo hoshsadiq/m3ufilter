@@ -23,7 +23,7 @@ func evaluate(ms *m3u8.MediaSegment, expr string) (result interface{}, err error
 	}
 
 	variables := map[string]interface{}{
-		"Name":    ms.Title,
+		"Name":     ms.Title,
 		"Uri":      ms.URI,
 		"Duration": ms.Duration,
 		"Attr":     attrs,
@@ -70,7 +70,7 @@ func getEvaluatorFunctions() map[string]goval.ExpressionFunction {
 		"match":   evaluatorMatch,
 		"replace": evaluatorReplace,
 		"tvg_id":  evaluatorToTvgId,
-		"title":  evaluatorTitle,
+		"title":   evaluatorTitle,
 	}
 }
 
