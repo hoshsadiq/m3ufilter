@@ -2,6 +2,8 @@
 
 This is a utility that will allow you to cleanup your M3U/M3U8/M3U+ files. This can change feed titles, names, tvg attributes, add/remove additional entries and much more.
 
+> Warning: right now, due to it's rapid development, I cannot guarantee breaking changes.
+
 ## How to run
 Simply create a config (see example below), and the you can run the binary:
 ```yaml
