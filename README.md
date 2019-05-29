@@ -29,8 +29,8 @@ core:
 providers:
   - uri: file:///path/to/m3u/playlist.m3u
     filters:
-      - match(Attr["group-title"], "UK.*") && !match(Name, "^24/7")
-      - match(Attr["tvg-id"], "3e.ie")
+      - match(Group, "UK.*") && !match(Name, "^24/7")
+      - match(Id, "3e.ie")
     setters:
       - name: replace(Name, "[\\s\\:\\|]+", " ")
       - name: replace(Name, "^VIP ", "")
@@ -123,27 +123,15 @@ providers:
     The login behind this will be improved, but right now, all it does is simply remove SD/HD/FHD from the title and any character that isn't a-zA-Z0-9.
 
 ##### Additionally, the following variables are available:
-- `Name`
 
-    This is the channel name
-
-- `Uri`
-
-    The URL for the stream
-
-- `Duration`
-
-    The duration of the stream, this is usually -1 (for no time) due to Live TV being being.. well.. Live.
-
-- Attr
-
-    This is a map of the of all the attributes that for IPTV. This all depends on the stream unfortunately, but in general with IPTV, you get the following values:
-    - `tvg-id` The ID to sync up with XMLTV
-    - `tvg-name` (this can be set to be in sync with the stream title)
-    - `tvg-logo` The logo (can be either a url or a base64 data string)
-    - `group-title` The group category
-
-    This can be retrieved by using array retrievals, e.g. `Attr["tvg-id"]` (You MUST use double quotes)
+|variable|content|
+|--------|-------|
+|`Id`|The ID to sync up with XMLTV|
+|`Name`|This is the channel name|
+|`Uri`|The URL for the stream|
+|`Duration`|The duration of the stream, this is usually -1 due to Live TV being being.. well.. live.|
+|`Logo`|The logo (can be either a url or a base64 data string)|
+|`Group`|The group category|
 
 ##### Generic expression syntax
 
