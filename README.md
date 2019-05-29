@@ -23,7 +23,6 @@ Usage of m3ufilter:
 ```yaml
 core:
   server_listen: localhost:8080
-  sync_title_name: true
   update_schedule: "*/24 * * * *"
   output: m3u
 providers:
@@ -49,14 +48,9 @@ providers:
     If set, this will run as a server, rather a single run. If you want single runs, you can omit this option. See the arguments to specify the output.
     Default: disabled
 
-- `core.sync_title_name`
-
-    If true, it will force the attribute `tvg-id` to be the same as `name` of the channel (see providers for more info).
-    Default: `false`
-
 - `core.update_schedule`
 
-    How often it should retrieve the latest channels. This is expressed in [cron syntax](https://github.com/mileusna/crontab#crontab-syntax-). It is highly recommended that you do not set this to a low interval. Set this to something like 1 every day.
+    How often it should retrieve the latest channels. This is expressed in [cron syntax](https://github.com/mileusna/crontab#crontab-syntax-). It is highly recommended that you do not set this to a low interval. Set this to at least once every day.
     Default: `true`
 
 - `core.output`

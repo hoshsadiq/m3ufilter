@@ -7,7 +7,6 @@ type Config struct {
 
 type Core struct {
 	ServerListen   string `yaml:"server_listen"`
-	SyncTitleName  bool   `yaml:"sync_title_name"`
 	Output         string
 	UpdateSchedule string `yaml:"update_schedule"`
 }
