@@ -12,7 +12,7 @@ func shouldIncludeSegment(segment *m3u8.MediaSegment, filters []string) bool {
 
 		include, err := evaluateBool(segment, filter)
 		if err != nil {
-			log.Println(err)
+			log.Printf("error parsing expression %s, error = %v", filter, err)
 		}
 
 		if include {
