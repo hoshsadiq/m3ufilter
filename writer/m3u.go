@@ -30,6 +30,11 @@ func getStreamExtinf(stream *m3u.Stream) []byte {
 	str.WriteString(` tvg-id=`)
 	str.WriteString(strconv.Quote(stream.Id))
 
+	if stream.Shift != "" {
+		str.WriteString(` tvg-shift=`)
+		str.WriteString(stream.Shift)
+	}
+
 	str.WriteString(` tvg-name=`)
 	str.WriteString(strconv.Quote(stream.Name))
 

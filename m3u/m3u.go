@@ -16,6 +16,7 @@ type Stream struct {
 
 	// these are attributes
 	Id    string
+	Shift string
 	Logo  string
 	Group string
 }
@@ -95,7 +96,7 @@ func parseExtinfLine(attrline string, urlLine string) (*Stream, error) {
 	attrline = strings.TrimSpace(attrline)
 	urlLine = strings.TrimSpace(urlLine)
 
-	attributes := &Stream{Uri: urlLine}
+	stream := &Stream{Uri: urlLine}
 	state := "duration"
 	key := ""
 	current := ""
@@ -110,13 +111,15 @@ func parseExtinfLine(attrline string, urlLine string) (*Stream, error) {
 			} else {
 				switch key {
 				case "tvg-id":
-					attributes.Id = current
+					stream.Id = current
+				case "tvg-shift":
+					stream.Shift = current
 				case "tvg-name":
-					attributes.Name = current
+					stream.Name = current
 				case "tvg-logo":
-					attributes.Logo = current
+					stream.Logo = current
 				case "group-title":
-					attributes.Group = current
+					stream.Group = current
 				}
 
 				key = ""
@@ -125,13 +128,13 @@ func parseExtinfLine(attrline string, urlLine string) (*Stream, error) {
 			}
 			continue
 		} else if state == "name" {
-			attributes.Name += string(c)
+			stream.Name += string(c)
 			continue
 		}
 
 		if escapeNext {
 			if state == "duration" {
-				attributes.Duration += string(c)
+				stream.Duration += string(c)
 			} else if state == "keyname" {
 				key += string(c)
 			}
@@ -173,7 +176,7 @@ func parseExtinfLine(attrline string, urlLine string) (*Stream, error) {
 
 		if state == "duration" {
 			if (c >= 48 && c <= 57) || c == '.' || c == '-' {
-				attributes.Duration += string(c)
+				stream.Duration += string(c)
 				continue
 			}
 		}
@@ -192,5 +195,5 @@ func parseExtinfLine(attrline string, urlLine string) (*Stream, error) {
 		return nil, errors.New(fmt.Sprintf("Unclosed quote on line: %s", attrline))
 	}
 
-	return attributes, nil
+	return stream, nil
 }

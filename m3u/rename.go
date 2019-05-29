@@ -34,6 +34,18 @@ func setSegmentValues(ms *Stream, setters []*config.Setter) {
 				ms.Id = newValue
 			}
 
+			if setter.Shift != "" {
+				newValue, err = evaluateStr(ms, setter.Shift)
+				if err != nil {
+					log.Errorln(err)
+				}
+				if newValue != ms.Shift {
+					log.Tracef("id %s replaced with %s; expr = %v", ms.Shift, newValue, setter.Shift)
+				}
+
+				ms.Shift = newValue
+			}
+
 			if setter.Logo != "" {
 				newValue, err = evaluateStr(ms, setter.Logo)
 				if err != nil {

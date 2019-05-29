@@ -22,6 +22,7 @@ type Setter struct {
 	Id      string
 	Logo    string
 	Group   string
+	Shift   string
 	Filters []string
 }
 
