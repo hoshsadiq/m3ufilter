@@ -49,7 +49,7 @@ func decode(reader io.Reader, providerConfig *config.Provider) ([]*Stream, error
 		}
 
 		lines++
-		if (lines % 100) == 0 {
+		if (lines % 1000) == 0 {
 			log.Infof("Parsing %d streams", lines)
 		}
 

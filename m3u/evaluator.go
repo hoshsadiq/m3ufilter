@@ -15,6 +15,12 @@ func evaluate(ms *Stream, expr string) (result interface{}, err error) {
 		return strings.TrimSpace(expr[1:]), nil
 	}
 
+	debug := false
+	if expr[0] == '?' {
+		debug = true
+		expr = strings.TrimSpace(expr[1:])
+	}
+
 	variables := map[string]interface{}{
 		"Name":     ms.Name,
 		"Uri":      ms.Uri,
@@ -27,7 +33,11 @@ func evaluate(ms *Stream, expr string) (result interface{}, err error) {
 	expr = cache.Expr(expr)
 
 	//fmt.Printf("Evaluating `%s` using vars %v\n", expr, variables)
-	return evaluator.Evaluate(expr, variables, getEvaluatorFunctions())
+	res, err := evaluator.Evaluate(expr, variables, getEvaluatorFunctions())
+	if debug {
+		log.Infof("Debugging expr %s, res = %s, vars = %v", expr, res, variables)
+	}
+	return res, err
 }
 
 func evaluateBool(ms *Stream, expr string) (result bool, err error) {
