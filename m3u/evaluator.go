@@ -3,9 +3,8 @@ package m3u
 import (
 	"errors"
 	"fmt"
-	"github.com/hoshsadiq/m3ufilter/regex"
+	"github.com/hoshsadiq/m3ufilter/cache"
 	"github.com/maja42/goval"
-	"github.com/maja42/no-comment"
 	"strings"
 )
 
@@ -25,7 +24,7 @@ func evaluate(ms *Stream, expr string) (result interface{}, err error) {
 		"Group":    ms.Group,
 	}
 
-	expr = nocomment.StripCStyleComments(expr)
+	expr = cache.Expr(expr)
 
 	//fmt.Printf("Evaluating `%s` using vars %v\n", expr, variables)
 	return evaluator.Evaluate(expr, variables, getEvaluatorFunctions())
@@ -79,7 +78,7 @@ func evaluatorMatch(args ...interface{}) (interface{}, error) {
 	subject := args[0].(string)
 	regexString := args[1].(string)
 
-	re := regex.GetCache(regexString)
+	re := cache.Regexp(regexString)
 	return (bool)(re.MatchString(subject)), nil
 }
 func evaluatorReplace(args ...interface{}) (interface{}, error) {
@@ -87,19 +86,19 @@ func evaluatorReplace(args ...interface{}) (interface{}, error) {
 	refind := args[1].(string)
 	replace := args[2].(string)
 
-	re := regex.GetCache(refind)
+	re := cache.Regexp(refind)
 	return (string)(re.ReplaceAllString(subject, replace)), nil
 }
 func evaluatorToTvgId(args ...interface{}) (interface{}, error) {
 	subject := args[0].(string)
-	re := regex.GetCache(`(?i)\b(SD|HD|FHD)\b`)
+	re := cache.Regexp(`(?i)\b(SD|HD|FHD)\b`)
 
 	subject = re.ReplaceAllString(subject, "")
 
 	subject = strings.Replace(subject, "&", "and", -1)
 	subject = strings.TrimSpace(subject)
 
-	re = regex.GetCache(`[^a-zA-Z0-9]`)
+	re = cache.Regexp(`[^a-zA-Z0-9]`)
 	tvgId := re.ReplaceAllString(subject, "")
 
 	return tvgId, nil
@@ -107,7 +106,7 @@ func evaluatorToTvgId(args ...interface{}) (interface{}, error) {
 
 func evaluatorTitle(args ...interface{}) (interface{}, error) {
 	subject := args[0].(string)
-	re := regex.GetCache(`(?i)\b(SD|HD|FHD)\b`)
+	re := cache.Regexp(`(?i)\b(SD|HD|FHD)\b`)
 
 	subject = re.ReplaceAllStringFunc(subject, func(s string) string {
 		return strings.ToUpper(s)

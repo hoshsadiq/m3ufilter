@@ -30,6 +30,7 @@ func decode(reader io.Reader, providerConfig *config.Provider) ([]*Stream, error
 	var eof bool
 	var streams []*Stream
 
+	lines := 0
 	for !eof {
 		var extinfLine string
 		var urlLine string
@@ -46,6 +47,11 @@ func decode(reader io.Reader, providerConfig *config.Provider) ([]*Stream, error
 			break
 		}
 
+		lines++
+		if (lines % 100) == 0 {
+			log.Infof("Parsing %d streams", lines)
+		}
+
 		stream, err := parseExtinfLine(extinfLine, urlLine)
 		if err != nil {
 			return nil, err
@@ -59,6 +65,8 @@ func decode(reader io.Reader, providerConfig *config.Provider) ([]*Stream, error
 
 		streams = append(streams, stream)
 	}
+
+	log.Infof("Found %d valid streams", len(streams))
 
 	return streams, nil
 }

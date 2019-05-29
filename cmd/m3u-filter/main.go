@@ -10,6 +10,7 @@ import (
 	"github.com/mitchellh/go-homedir"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
+	_ "net/http/pprof"
 	"os"
 )
 
