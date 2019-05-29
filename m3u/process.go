@@ -2,21 +2,19 @@ package m3u
 
 import (
 	"bufio"
-	"github.com/grafov/m3u8"
 	"github.com/hoshsadiq/m3ufilter/config"
 	"github.com/hoshsadiq/m3ufilter/logger"
-	"github.com/hoshsadiq/m3ufilter/util"
 	"net/http"
 )
 
 var log = logger.Get()
 
-func GetPlaylist(conf *config.Config) []*m3u8.MediaPlaylist {
+func GetPlaylist(conf *config.Config) []*Stream {
 	transport := &http.Transport{}
 	transport.RegisterProtocol("file", http.NewFileTransport(http.Dir("/")))
 	client := &http.Client{Transport: transport}
 
-	playlists := []*m3u8.MediaPlaylist{}
+	playlists := []*Stream{}
 	for _, provider := range conf.Providers {
 		log.Infof("reading from provder %s", provider.Uri)
 		resp, err := client.Get(provider.Uri)
@@ -25,68 +23,37 @@ func GetPlaylist(conf *config.Config) []*m3u8.MediaPlaylist {
 		}
 		defer resp.Body.Close()
 
-		p, listType, err := m3u8.DecodeFrom(bufio.NewReader(resp.Body), false)
+		pl, err := decode(bufio.NewReader(resp.Body))
+
+		newp, err := processPlaylist(pl, provider)
 		if err != nil {
-			log.Errorf("could not parse provider %s, err = %v", provider.Uri, err)
+			log.Errorf("unable to parse %s, err = %v", provider.Uri, err)
 			continue
 		}
 
-		switch listType {
-		case m3u8.MEDIA:
-			log.Debugf("found media type %v", listType)
-			mediapl := p.(*m3u8.MediaPlaylist)
-			newp, err := processPlaylist(mediapl, provider, conf.Core.SyncTitleName)
-			if err != nil {
-				log.Errorf("unable to parse %s, err = %v", provider.Uri, err)
-				continue
-			}
-
-			playlists = append(playlists, newp)
-		default:
-			log.Errorf("found unsupported media type. code needs to be updated. Type = %v, err = %v", listType, err)
-		}
+		playlists = append(playlists, newp...)
 	}
 
 	return playlists
 }
 
-func processPlaylist(pl *m3u8.MediaPlaylist, providerConfig *config.Provider, syncTitleName bool) (*m3u8.MediaPlaylist, error) {
-	p, err := m3u8.NewMediaPlaylist(pl.Count(), pl.Count())
-	if err != nil {
-		return nil, err
-	}
+func processPlaylist(streams []*Stream, providerConfig *config.Provider) ([]*Stream, error) {
+	newStreams := []*Stream{}
 
-	for _, ms := range pl.Segments {
+	for _, ms := range streams {
 		if ms == nil {
 			continue
 		}
-		log.Debugf("Processing segment: tvg-id=%s; channel=%s", util.GetAttr(ms, "tvg-id").Value, ms.Title)
-
-		ms = ms.Clone()
-		//segment.Title, err = strconv.Unquote("\"" + segment.Title + "\"")
-		//if err != nil {
-		//	log.Errorf("error unquoting %s", segment.Title)
-		//}
+		log.Debugf("Processing segment: tvg-id=%s; channel=%s", ms.Id, ms.Name)
 
 		if !shouldIncludeSegment(ms, providerConfig.Filters) {
 			continue
 		}
 
 		setSegmentValues(ms, providerConfig.Setters)
-		if syncTitleName {
-			util.SetAttr(ms, "tvg-name", ms.Title)
-		}
 
-		err = p.AppendSegment(ms)
-		if err != nil {
-			return nil, err
-		}
+		newStreams = append(newStreams, ms)
 	}
 
-	err = p.SetWinSize(p.Count())
-	if err != nil {
-		return nil, err
-	}
-
-	return p, nil
+	return newStreams, nil
 }

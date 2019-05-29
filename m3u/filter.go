@@ -1,10 +1,6 @@
 package m3u
 
-import (
-	"github.com/grafov/m3u8"
-)
-
-func shouldIncludeSegment(segment *m3u8.MediaSegment, filters []string) bool {
+func shouldIncludeSegment(segment *Stream, filters []string) bool {
 	for _, filter := range filters {
 		if filter == "" {
 			continue

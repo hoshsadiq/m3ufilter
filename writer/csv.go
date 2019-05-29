@@ -2,20 +2,21 @@ package writer
 
 import (
 	"encoding/csv"
-	"github.com/grafov/m3u8"
-	"github.com/hoshsadiq/m3ufilter/util"
+	"github.com/hoshsadiq/m3ufilter/m3u"
 	"io"
 )
 
 var csvHeaders = []string{
 	"tvg-id",
 	"group-title",
+	"group-title",
 	"tvg-name",
+	"duration",
 	"tvg-logo",
-	"channel-name",
+	"uri",
 }
 
-func writeCsv(w io.Writer, playlists []*m3u8.MediaPlaylist) {
+func writeCsv(w io.Writer, streams []*m3u.Stream) {
 	writer := csv.NewWriter(w)
 	defer writer.Flush()
 
@@ -24,28 +25,23 @@ func writeCsv(w io.Writer, playlists []*m3u8.MediaPlaylist) {
 		log.Errorf("Could not write csv header, err = %s", err)
 	}
 
-	for _, pl := range playlists {
-		printPlaylist(pl, writer)
+	for _, stream := range streams {
+		printPlaylist(stream, writer)
 	}
 }
 
-func printPlaylist(pl *m3u8.MediaPlaylist, w *csv.Writer) {
-	for _, ms := range pl.Segments {
-		if ms == nil { // todo why do we get a nil value after the last item?
-			continue
-		}
+func printPlaylist(pl *m3u.Stream, w *csv.Writer) {
+	row := []string{
+		pl.Id,
+		pl.Group,
+		pl.Name,
+		pl.Duration,
+		pl.Logo,
+		pl.Uri,
+	}
 
-		row := []string{
-			util.GetAttr(ms, "tvg-id").Value,
-			util.GetAttr(ms, "group-title").Value,
-			util.GetAttr(ms, "tvg-name").Value,
-			util.GetAttr(ms, "tvg-logo").Value,
-			ms.Title,
-		}
-
-		err := w.Write(row)
-		if err != nil {
-			log.Errorf("Could not write csv row, row = %v, err = %s", row, err)
-		}
+	err := w.Write(row)
+	if err != nil {
+		log.Errorf("Could not write csv row, row = %v, err = %s", row, err)
 	}
 }

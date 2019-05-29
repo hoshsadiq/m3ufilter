@@ -45,8 +45,8 @@ func run(configFilename string, stdout *os.File, stderr *os.File) {
 	if conf.Core.ServerListen != "" {
 		server.Serve(conf)
 	} else {
-		playlists := m3u.GetPlaylist(conf)
-		writer.WriteOutput(conf.Core.Output, stdout, playlists)
+		playlist := m3u.GetPlaylist(conf)
+		writer.WriteOutput(conf.Core.Output, stdout, playlist)
 	}
 }
 

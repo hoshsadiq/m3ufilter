@@ -19,9 +19,11 @@ type Provider struct {
 }
 
 type Setter struct {
-	Name       string
-	Attributes map[string]string
-	Filters    []string
+	Name    string
+	Id      string
+	Logo    string
+	Group   string
+	Filters []string
 }
 
 type Replacement struct {

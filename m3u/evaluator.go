@@ -3,7 +3,6 @@ package m3u
 import (
 	"errors"
 	"fmt"
-	"github.com/grafov/m3u8"
 	"github.com/hoshsadiq/m3ufilter/regex"
 	"github.com/maja42/goval"
 	"github.com/maja42/no-comment"
@@ -12,21 +11,18 @@ import (
 
 var evaluator = goval.NewEvaluator()
 
-func evaluate(ms *m3u8.MediaSegment, expr string) (result interface{}, err error) {
+func evaluate(ms *Stream, expr string) (result interface{}, err error) {
 	if expr[0] == '=' {
 		return strings.TrimSpace(expr[1:]), nil
 	}
 
-	attrs := make(map[string]string)
-	for _, attr := range ms.Attributes {
-		attrs[attr.Key] = attr.Value
-	}
-
 	variables := map[string]interface{}{
-		"Name":     ms.Title,
-		"Uri":      ms.URI,
+		"Name":     ms.Name,
+		"Uri":      ms.Uri,
 		"Duration": ms.Duration,
-		"Attr":     attrs,
+		"Id":       ms.Id,
+		"Logo":     ms.Logo,
+		"Group":    ms.Group,
 	}
 
 	expr = nocomment.StripCStyleComments(expr)
@@ -35,7 +31,7 @@ func evaluate(ms *m3u8.MediaSegment, expr string) (result interface{}, err error
 	return evaluator.Evaluate(expr, variables, getEvaluatorFunctions())
 }
 
-func evaluateBool(ms *m3u8.MediaSegment, expr string) (result bool, err error) {
+func evaluateBool(ms *Stream, expr string) (result bool, err error) {
 	res, err := evaluate(ms, expr)
 	if err != nil {
 		return false, err
@@ -50,7 +46,7 @@ func evaluateBool(ms *m3u8.MediaSegment, expr string) (result bool, err error) {
 	}
 }
 
-func evaluateStr(ms *m3u8.MediaSegment, expr string) (result string, err error) {
+func evaluateStr(ms *Stream, expr string) (result string, err error) {
 	res, err := evaluate(ms, expr)
 	if err != nil {
 		return "", err

@@ -1,7 +1,6 @@
 package server
 
 import (
-	"github.com/grafov/m3u8"
 	"github.com/hoshsadiq/m3ufilter/config"
 	"github.com/hoshsadiq/m3ufilter/logger"
 	"github.com/hoshsadiq/m3ufilter/m3u"
@@ -12,7 +11,7 @@ import (
 
 var log = logger.Get()
 
-var playlists *[]*m3u8.MediaPlaylist
+var playlists *[]*m3u.Stream
 
 var lock *bool
 
