@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"github.com/hoshsadiq/m3ufilter/config"
 	"io"
 	"strings"
 )
@@ -19,7 +20,7 @@ type Stream struct {
 	Group string
 }
 
-func decode(reader io.Reader) ([]*Stream, error) {
+func decode(reader io.Reader, providerConfig *config.Provider) ([]*Stream, error) {
 	buf := new(bytes.Buffer)
 	_, err := buf.ReadFrom(reader)
 	if err != nil {
@@ -49,6 +50,12 @@ func decode(reader io.Reader) ([]*Stream, error) {
 		if err != nil {
 			return nil, err
 		}
+
+		if !shouldIncludeSegment(stream, providerConfig.Filters) {
+			continue
+		}
+
+		setSegmentValues(stream, providerConfig.Setters)
 
 		streams = append(streams, stream)
 	}

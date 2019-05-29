@@ -23,37 +23,13 @@ func GetPlaylist(conf *config.Config) []*Stream {
 		}
 		defer resp.Body.Close()
 
-		pl, err := decode(bufio.NewReader(resp.Body))
-
-		newp, err := processPlaylist(pl, provider)
+		pl, err := decode(bufio.NewReader(resp.Body), provider)
 		if err != nil {
-			log.Errorf("unable to parse %s, err = %v", provider.Uri, err)
-			continue
+			log.Errorf("could not retrieve playlist from provider %s, err = %v", provider.Uri, err)
 		}
 
-		playlists = append(playlists, newp...)
+		playlists = append(playlists, pl...)
 	}
 
 	return playlists
-}
-
-func processPlaylist(streams []*Stream, providerConfig *config.Provider) ([]*Stream, error) {
-	newStreams := []*Stream{}
-
-	for _, ms := range streams {
-		if ms == nil {
-			continue
-		}
-		log.Debugf("Processing segment: tvg-id=%s; channel=%s", ms.Id, ms.Name)
-
-		if !shouldIncludeSegment(ms, providerConfig.Filters) {
-			continue
-		}
-
-		setSegmentValues(ms, providerConfig.Setters)
-
-		newStreams = append(newStreams, ms)
-	}
-
-	return newStreams, nil
 }
