@@ -15,6 +15,7 @@ type Stream struct {
 	Uri      string
 
 	// these are attributes
+	ChNo  string
 	Id    string
 	Shift string
 	Logo  string
@@ -99,7 +100,7 @@ func parseExtinfLine(attrline string, urlLine string) (*Stream, error) {
 	stream := &Stream{Uri: urlLine}
 	state := "duration"
 	key := ""
-	current := ""
+	value := ""
 	quote := "\""
 	escapeNext := false
 	for i := 8; i < len(attrline); i++ {
@@ -107,23 +108,25 @@ func parseExtinfLine(attrline string, urlLine string) (*Stream, error) {
 
 		if state == "quotes" {
 			if string(c) != quote {
-				current += string(c)
+				value += string(c)
 			} else {
 				switch key {
+				case "tvg-chno":
+					stream.ChNo = value
 				case "tvg-id":
-					stream.Id = current
+					stream.Id = value
 				case "tvg-shift":
-					stream.Shift = current
-				case "tvg-name":
-					stream.Name = current
+					stream.Shift = value
+				//case "tvg-name": // todo do we want tvgname or title?
+				//	stream.Name = value
 				case "tvg-logo":
-					stream.Logo = current
+					stream.Logo = value
 				case "group-title":
-					stream.Group = current
+					stream.Group = value
 				}
 
 				key = ""
-				current = ""
+				value = ""
 				state = "start"
 			}
 			continue
@@ -159,7 +162,7 @@ func parseExtinfLine(attrline string, urlLine string) (*Stream, error) {
 
 		if c == ',' {
 			state = "name"
-			break
+			continue
 		}
 
 		if state == "keyname" {
@@ -187,7 +190,7 @@ func parseExtinfLine(attrline string, urlLine string) (*Stream, error) {
 		}
 	}
 
-	if state == "keyname" && current == "" {
+	if state == "keyname" && value == "" {
 		return nil, errors.New(fmt.Sprintf("Key %s started but no value assigned on line: %s", key, attrline))
 	}
 

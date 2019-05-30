@@ -18,8 +18,9 @@ type Provider struct {
 }
 
 type Setter struct {
-	Name    string
+	ChNo    string `yaml:"chno"`
 	Id      string
+	Name    string
 	Logo    string
 	Group   string
 	Shift   string

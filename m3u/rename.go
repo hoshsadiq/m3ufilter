@@ -69,6 +69,18 @@ func setSegmentValues(ms *Stream, setters []*config.Setter) {
 
 				ms.Group = newValue
 			}
+
+			if setter.ChNo != "" {
+				newValue, err = evaluateStr(ms, setter.ChNo)
+				if err != nil {
+					log.Errorln(err)
+				}
+				if newValue != ms.ChNo {
+					log.Tracef("title %s replaced with %s; expr = %v", ms.ChNo, newValue, setter.ChNo)
+				}
+
+				ms.ChNo = newValue
+			}
 		}
 	}
 }
