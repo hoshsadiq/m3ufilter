@@ -5,16 +5,17 @@ import (
 	"github.com/hoshsadiq/m3ufilter/config"
 	"github.com/hoshsadiq/m3ufilter/logger"
 	"net/http"
+	"sort"
 )
 
 var log = logger.Get()
 
-func GetPlaylist(conf *config.Config) []*Stream {
+func GetPlaylist(conf *config.Config) Streams {
 	transport := &http.Transport{}
 	transport.RegisterProtocol("file", http.NewFileTransport(http.Dir("/")))
 	client := &http.Client{Transport: transport}
 
-	playlists := []*Stream{}
+	streams := Streams{}
 	for _, provider := range conf.Providers {
 		log.Infof("reading from provder %s", provider.Uri)
 		resp, err := client.Get(provider.Uri)
@@ -28,8 +29,10 @@ func GetPlaylist(conf *config.Config) []*Stream {
 			log.Errorf("could not retrieve playlist from provider %s, err = %v", provider.Uri, err)
 		}
 
-		playlists = append(playlists, pl...)
+		streams = append(streams, pl...)
 	}
 
-	return playlists
+	sort.Sort(streams)
+
+	return streams
 }

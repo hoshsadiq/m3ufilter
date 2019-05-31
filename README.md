@@ -27,6 +27,11 @@ core:
   server_listen: localhost:8080
   update_schedule: "*/24 * * * *"
   output: m3u
+  group_order:
+    - Entertainment
+    - Family/Kids
+    - News
+    - Drama
 providers:
   - uri: file:///path/to/m3u/playlist.m3u
     filters:
@@ -58,6 +63,10 @@ providers:
 - `core.output`
 
     What to output. This can be either `csv` or `m3u`. CSV is useful for debugging and ensuring you've gone through all the channels, outside that, you generally want this to be `m3u`.
+
+- `core.group_order`
+
+    The order to put the categories in.
 
 - `providers`
 

@@ -9,6 +9,21 @@ import (
 	"strings"
 )
 
+type Streams []*Stream
+
+func (s Streams) Len() int {
+	return len(s)
+}
+
+func (s Streams) Less(i, j int) bool {
+	groupOrder := config.Get().GetGroupOrder()
+	return groupOrder[s[i].Group] < groupOrder[s[j].Group]
+}
+
+func (s Streams) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+
 type Stream struct {
 	Duration string
 	Name     string
@@ -22,15 +37,15 @@ type Stream struct {
 	Group string
 }
 
-func decode(reader io.Reader, providerConfig *config.Provider) ([]*Stream, error) {
+func decode(reader io.Reader, providerConfig *config.Provider) (Streams, error) {
 	buf := new(bytes.Buffer)
 	_, err := buf.ReadFrom(reader)
 	if err != nil {
-		return nil, err
+		return Streams{}, err
 	}
 
 	var eof bool
-	var streams []*Stream
+	streams := Streams{}
 
 	lines := 0
 	for !eof {

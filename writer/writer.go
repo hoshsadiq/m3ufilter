@@ -9,7 +9,7 @@ import (
 
 var log = logger.Get()
 
-func WriteOutput(Output string, w io.Writer, streams []*m3u.Stream) {
+func WriteOutput(Output string, w io.Writer, streams m3u.Streams) {
 	switch Output {
 	case "m3u":
 		writeM3U(w, streams)

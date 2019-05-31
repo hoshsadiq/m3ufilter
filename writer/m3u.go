@@ -27,8 +27,10 @@ func getStreamExtinf(stream *m3u.Stream) []byte {
 	str.WriteString("#EXTINF:")
 	str.WriteString(stream.Duration)
 
-	str.WriteString(` tvg-chno=`)
-	str.WriteString(strconv.Quote(stream.ChNo))
+	if stream.ChNo != "" {
+		str.WriteString(` tvg-chno=`)
+		str.WriteString(stream.ChNo)
+	}
 
 	str.WriteString(` tvg-id=`)
 	str.WriteString(strconv.Quote(stream.Id))

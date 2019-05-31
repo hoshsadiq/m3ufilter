@@ -11,7 +11,7 @@ import (
 
 var log = logger.Get()
 
-var playlists *[]*m3u.Stream
+var playlists *m3u.Streams
 
 var lock *bool
 

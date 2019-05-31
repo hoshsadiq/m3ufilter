@@ -37,7 +37,7 @@ func run(configFilename string, stdout *os.File, stderr *os.File) {
 		log.Fatalf("could not read config file %s, err = %v", configFilename, err)
 	}
 
-	var conf *config.Config
+	conf := config.Get()
 	err = yaml.Unmarshal([]byte(yamlFile), &conf)
 	if err != nil {
 		log.Fatalf("could not parse config file %s, err = %v", configFilename, err)
