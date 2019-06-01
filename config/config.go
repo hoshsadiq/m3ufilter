@@ -8,7 +8,7 @@ type Config struct {
 type Core struct {
 	ServerListen   string `yaml:"server_listen"`
 	Output         string
-	UpdateSchedule string `yaml:"update_schedule"`
+	UpdateSchedule string   `yaml:"update_schedule"`
 	GroupOrder     []string `yaml:"group_order"`
 
 	groupOrderMap map[string]int
