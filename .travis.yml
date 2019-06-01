@@ -1,3 +1,10 @@
+stages:
+  - test
+  - build-go
+  - build-docker
+  - deploy-go
+  - deploy-docker
+
 language: go
 
 go:
@@ -13,22 +20,60 @@ env:
   global:
     - GO111MODULE=on
     - CGO_ENABLED=0
+    - DOCKER_USERNAME=hoshsadiq
+    - secure: "kcpY/XlyxCEKmnXsreRXX2aij8/rezYdVprfFrEeSd8Z38HWxxzXVOsyU8hUIVzbRN9teNeaam+tkR5KluNdPNZHSca5LtlpHcO1RAMhooeJYktiVQUbzHkH7DJ0mh4BjxPmHro+R7mh9tLtQa6rSV87vKgR2GvAchJfhqoFAaG2SS5LPDfziO8JdpWXl7p8ULmG/rnJA/gS4WdXIle5S23Up9jt/0YDedw6nrqkjJeRyhDxdgAG8jP+T0/WsqzV3S0muwxNKuSOqnKAdvM8mEGP2l0GRVdS9ct0eXezH6Ox1tUz9amNZ8agN+4tQlgTlmrV0WwEjtf59gg3os+a6xzWD/9ZkqJCEmRtby+33/MjRt8bRsA3sBpeei6yV2OTbFlNDZf5eyMgyn9dBKzLX1LBbFIrbLB6zHqKG33BVMOql6XrqG/Kx+z6rQR216gNxL/pZ8PMCKpu8ZmKYsuAQp+55ixpr/RBVZTyPYiTXWOkg+qEPLVr/UBkDHumv/Tijkrj77fRvvJU3NETuaHC+KidqnL1pVJ+53zGdhQ4rYqtJyXqzSD+3tHTqE4H2b1XI1Um81E0bw0jzWegjYVg5BQpLkj/bopTl2grOwcpNt3RLChIXY8Up4xI/iRBo7U6M2IHtNFXQZ3XfQaU79sfHU29TutFO7EbfjRUkuBr/u0="
 
-before_script:
+  matrix:
+    - OS=linux ARCH=amd64
+#    - OS=linux ARCH=386
+#    - OS=linux ARCH=arm
+#    - OS=linux ARCH=arm64
+#    - OS=windows ARCH=amd64
+#    - OS=windows ARCH=386
+#    - OS=darwin ARCH=amd64
+#    - OS=darwin ARCH=386
+
+
+install:
   - mkdir -p build
   - go get github.com/mitchellh/gox
-  - diff -u <(echo -n) <(gofmt -d .)
-  - go mod vendor
-  - go vet $(go list ./... | grep -v /vendor/)
-  - go test -v ./... # todo we don't actually have any tests yet, but soon!
+  - sudo apt-get --yes --no-install-recommends install binfmt-support qemu-user-static
+  - curl https://get.docker.com | sh
+
+before_script:
+  - echo -n "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USERNAME" --password-stdin
+  - mkdir -p ~/.docker
+  - >
+    echo '{ "experimental": "enabled" }' > ~/.docker/config.json
+  - docker version
+
+  # todo move to apt
+  - |
+    set -eux
+    if [[ "$OS" == "linux" && "$ARCH" != "amd64" ]]; then
+      docker run --rm --privileged multiarch/qemu-user-static:register --reset
+    fi
 
 script:
-  - gox -osarch "linux/amd64 linux/386 linux/arm linux/arm64 windows/amd64 windows/386 darwin/amd64 darwin/386" -output "build/m3u-filter_{{.OS}}_{{.Arch}}" github.com/hoshsadiq/m3ufilter/cmd/m3u-filter
+#  - diff -u <(echo -n) <(gofmt -d .)
+#  - go vet $(go list ./... | grep -v /vendor/)
+#  - go test -v ./... # todo we don't actually have any tests yet, but soon!
+  - gox -osarch "$OS/$ARCH" -output "build/m3u-filter_{{.OS}}_{{.Arch}}" github.com/$TRAVIS_REPO_SLUG/cmd/m3u-filter
+  - |
+    set -eux
+     docker build -t $TRAVIS_REPO_SLUG:$TRAVIS_TAG-$ARCH .
 
-after_script:
+# if [[ -n $TRAVIS_TAG ]] && [[ "$TRAVIS_PULL_REQUEST" == "false" ]]; then
+# fi
+
+before_deploy:
   - ls -la build/
 
 deploy:
+  - provider: script
+    script: |
+      echo "$OS/$ARCH"
+      docker images
   - provider: releases
     skip_cleanup: true
     file_glob: true
@@ -36,5 +81,13 @@ deploy:
     api_key:
       secure: CnjUhD6PoSZ1qv+/OjdJ7c1QLyPX3X31hXRMkgcG4trP8W+QrDDmixYpcJbHdc/mNrFsiJ8/L2Qm8mLUnSaLIf/HbSHp0EzxKuDU2Rdb2MGRuDUqLyWSHGbY67otTXvEYVagoFmg8s6cEVincDMckD47uyw5L2NduwyNs0hg1TizVZyTnfAba2WsKSwHJpA01yVRTuIH92J38jFWUjqZkgDyMVYG7G7vb+mU3WNLyxBfzJVkLXzOWx0ELyxWi6X9BT/8Ib0Q/m3SUFan3XteQlMkeSEUPnbdmfL4FYlm/oXfqrigunRCp7edD1wgnrP3sHkKbl5NtHU5I6BHFaiT42M8Rr1Snp9wOzvCtjDb+1Ory84+L8iYcueXh0SXNvgCxkZBYsiFVsOEwz8dWpFqVW6R8ADY6x65VhEyBICbRL2kbRgpZyfTlb9nJKw6ZlWwmPDracxKexGD62BTSdlvL0s8C2Y/aJf90oYOAPvv0VuvzE4CUrPod7eKKR/saHhmzrYolLh4Hta552u0uHZNRTsLxVJXuW2QZfKodNJFQWsrDNADPd69Fg1m3USgkspClfb0uQkt5gpaqVE9x9BP0qGjzJ2P/WqNt36qTKLxbtIMcrdmIj7DalxgBeBy9c9OAljs6MjVdcbJWo0Sht7JE5jdM4lVhVjvSRBtgYRInIA=
     on:
-      repo: hoshsadiq/m3ufilter
+      repo: $TRAVIS_REPO_SLUG
       tags: true
+#        - provider: script
+#          script: |
+#            # docker tag $ARCH
+#            docker images
+#          on:
+#            repo: $TRAVIS_REPO_SLUG
+#            # tags: true
+#            condition: OS == "linux"
