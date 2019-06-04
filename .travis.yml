@@ -61,14 +61,18 @@ before_script:
 #  - go test -v ./... # todo we don't actually have any tests yet, but soon!
 script:
   - gox -osarch "$OS/$ARCH" -output "build/m3u-filter_{{.OS}}_{{.Arch}}" github.com/$TRAVIS_REPO_SLUG/cmd/m3u-filter
-  - echo docker build -t $TRAVIS_REPO_SLUG:${TRAVIS_BRANCH}-$ARCH .
+  - docker build -t $TRAVIS_REPO_SLUG:${TRAVIS_TAG:-v0.0.0}-$ARCH .
+  - docker images
 
 before_deploy:
   - ls -la build/
 
 deploy:
   - provider: script
-    script: "docker images --all && git diff"
+    script: docker images --all && git diff
+
+
+
 #  - provider: releases
 #    skip_cleanup: true
 #    file_glob: true
