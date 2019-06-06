@@ -1,9 +1,7 @@
 stages:
+  - go test
   - test
-  - build-go
-  - build-docker
-  - deploy-go
-  - deploy-docker
+#  - push-manifests
 
 language: go
 
@@ -16,6 +14,26 @@ services:
 git:
   depth: 1
 
+jobs:
+  include:
+    - stage: go test
+      script:
+        - diff -u <(echo -n) <(gofmt -d .)
+        - go vet $(go list ./... | grep -v /vendor/)
+        - go test -v ./... # todo we don't actually have any tests yet, but soon!
+      deploy: ~
+#    - stage: push-manifests
+#      install:
+#        - curl https://get.docker.com | sh
+#        - |
+#          mkdir -p ~/.docker
+#          echo '{ "experimental": "enabled" }' > ~/.docker/config.json
+#          docker version
+#      script:
+#        - diff -u <(echo -n) <(gofmt -d .)
+#        - go vet $(go list ./... | grep -v /vendor/)
+#        - go test -v ./... # todo we don't actually have any tests yet, but soon!
+
 env:
   global:
     - GO111MODULE=on
@@ -26,7 +44,7 @@ env:
   matrix:
     - OS=linux ARCH=amd64
 #    - OS=linux ARCH=386
-#    - OS=linux ARCH=arm
+    - OS=linux ARCH=arm
 #    - OS=linux ARCH=arm64
 #    - OS=windows ARCH=amd64
 #    - OS=windows ARCH=386
@@ -37,40 +55,33 @@ env:
 install:
   - mkdir -p build
   - go get github.com/mitchellh/gox
-  - sudo apt-get --yes --no-install-recommends install binfmt-support qemu-user-static
-  - curl https://get.docker.com | sh
+#  - sudo apt-get --yes --no-install-recommends install binfmt-support qemu-user-static
 
 before_script:
-  - echo -n "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USERNAME" --password-stdin
-  - mkdir -p ~/.docker
-  - >
-    echo '{ "experimental": "enabled" }' > ~/.docker/config.json
   - docker version
-
-  # todo move to apt
   - |
-    set -ex
     if [[ "$OS" == "linux" && "$ARCH" != "amd64" ]]; then
       docker run --rm --privileged multiarch/qemu-user-static:register --reset
     fi
-    set +x
 
 
-#  - diff -u <(echo -n) <(gofmt -d .)
-#  - go vet $(go list ./... | grep -v /vendor/)
-#  - go test -v ./... # todo we don't actually have any tests yet, but soon!
 script:
   - gox -osarch "$OS/$ARCH" -output "build/m3u-filter_{{.OS}}_{{.Arch}}" github.com/$TRAVIS_REPO_SLUG/cmd/m3u-filter
-  - docker build -t $TRAVIS_REPO_SLUG:${TRAVIS_TAG:-v0.0.0}-$ARCH .
-  - docker images
+  - |
+    if [[ "$OS" == "linux" ]]; then
+      docker build --build-arg "arch=$ARCH" -t $TRAVIS_REPO_SLUG:${TRAVIS_TAG:-v0.0.0}-$ARCH .
+    fi
 
 before_deploy:
   - ls -la build/
+  - echo -n "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USERNAME" --password-stdin
 
 deploy:
   - provider: script
-    script: docker images --all && git diff
-
+    script: docker push $TRAVIS_REPO_SLUG:${TRAVIS_TAG:-v0.0.0}-$ARCH
+    on:
+      repo: hoshsadiq/m3ufilter
+      all_branches: true
 
 
 #  - provider: releases
