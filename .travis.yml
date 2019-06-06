@@ -69,7 +69,7 @@ script:
   - gox -osarch "$OS/$ARCH" -output "build/m3u-filter_{{.OS}}_{{.Arch}}" github.com/$TRAVIS_REPO_SLUG/cmd/m3u-filter
   - |
     if [[ "$OS" == "linux" ]]; then
-      docker build --build-arg "arch=$ARCH" -t $TRAVIS_REPO_SLUG:${TRAVIS_TAG:-v0.0.0}-$ARCH .
+      docker build --build-arg "ARCH=$ARCH" -t $TRAVIS_REPO_SLUG:${TRAVIS_TAG:-v0.0.0}-$ARCH .
     fi
 
 before_deploy:
