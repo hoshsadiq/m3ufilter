@@ -21,12 +21,12 @@ addons:
 
 jobs:
   include:
-#    - stage: go test
-#      script:
-#        - diff -u <(echo -n) <(gofmt -d .)
-#        - go vet $(go list ./... | grep -v /vendor/)
-#        - go test -v ./... # todo we don't actually have any tests yet, but soon!
-#      deploy: ~
+    - stage: go test
+      script:
+        - diff -u <(echo -n) <(gofmt -d .)
+        - go vet $(go list ./... | grep -v /vendor/)
+        - go test -v ./... # todo we don't actually have any tests yet, but soon!
+      deploy: ~
     - stage: push-manifests
       install:
         - curl https://get.docker.com | sh
@@ -39,7 +39,7 @@ jobs:
       script:
         - bash ci/docker-manifest.sh
       deploy: ~
-      if: repo == "hoshsadiq/m3ufilter" # && tag != ""
+      if: repo == "hoshsadiq/m3ufilter" && tag IS present
 env:
   global:
     - GO111MODULE=on
@@ -49,19 +49,18 @@ env:
 
   matrix:
     - OS=linux ARCH=amd64
-#    - OS=linux ARCH=386
+    - OS=linux ARCH=386
     - OS=linux ARCH=arm
-#    - OS=linux ARCH=arm64
-#    - OS=windows ARCH=amd64
-#    - OS=windows ARCH=386
-#    - OS=darwin ARCH=amd64
-#    - OS=darwin ARCH=386
+    - OS=linux ARCH=arm64
+    - OS=windows ARCH=amd64
+    - OS=windows ARCH=386
+    - OS=darwin ARCH=amd64
+    - OS=darwin ARCH=386
 
 
 install:
   - mkdir -p build
   - go get github.com/mitchellh/gox
-#  - sudo apt-get --yes --no-install-recommends install binfmt-support qemu-user-static
 
 before_script:
   - docker version
@@ -131,7 +130,6 @@ deploy:
     script: bash ci/docker-push.sh
     on:
       repo: hoshsadiq/m3ufilter
-#      tags: true
+      tags: true
       condition: $OS = "linux"
-      all_branches: true
 
