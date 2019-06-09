@@ -1,7 +1,7 @@
 stages:
   - go test
   - test
-#  - push-manifests
+  - push-manifests
 
 language: go
 
@@ -14,6 +14,11 @@ services:
 git:
   depth: 1
 
+addons:
+  apt:
+    packages:
+      - jq
+
 jobs:
   include:
     - stage: go test
@@ -22,17 +27,15 @@ jobs:
         - go vet $(go list ./... | grep -v /vendor/)
         - go test -v ./... # todo we don't actually have any tests yet, but soon!
       deploy: ~
-#    - stage: push-manifests
-#      install:
-#        - curl https://get.docker.com | sh
-#        - |
-#          mkdir -p ~/.docker
-#          echo '{ "experimental": "enabled" }' > ~/.docker/config.json
-#          docker version
-#      script:
-#        - diff -u <(echo -n) <(gofmt -d .)
-#        - go vet $(go list ./... | grep -v /vendor/)
-#        - go test -v ./... # todo we don't actually have any tests yet, but soon!
+    - stage: push-manifests
+      install:
+        - curl https://get.docker.com | sh
+        - |
+          mkdir -p ~/.docker
+          echo '{ "experimental": "enabled" }' > ~/.docker/config.json
+          docker version
+      script:
+        - bash ci/docker-manifest.sh
 
 env:
   global:
@@ -60,16 +63,47 @@ install:
 before_script:
   - docker version
   - |
-    if [[ "$OS" == "linux" && "$ARCH" != "amd64" ]]; then
-      docker run --rm --privileged multiarch/qemu-user-static:register --reset
-    fi
+    if [[ "$OS" == "linux" ]]; then
+        mkdir -p ~/.docker
+        echo '{"experimental":true}' | sudo tee /etc/docker/daemon.json
+        echo '{"experimental":"enabled"}' > ~/.docker/config.json
 
+        if [[ "$ARCH" != "amd64" ]]; then
+          docker run --rm --privileged multiarch/qemu-user-static:register
+        fi
+    fi
 
 script:
   - gox -osarch "$OS/$ARCH" -output "build/m3u-filter_{{.OS}}_{{.Arch}}" github.com/$TRAVIS_REPO_SLUG/cmd/m3u-filter
   - |
     if [[ "$OS" == "linux" ]]; then
       docker build --build-arg "ARCH=$ARCH" -t $TRAVIS_REPO_SLUG:${TRAVIS_TAG:-v0.0.0}-$ARCH .
+
+
+      # based on https://github.com/rmoriz/multiarch-test/blob/master/hooks/build
+      tempdir=$(mktemp -d -t docker-rearch.XXXXXXXX)
+      pushd $tempdir
+
+      echo "Set docker image architecture to $arch"
+
+      docker save "$TRAVIS_REPO_SLUG:${TRAVIS_TAG:-v0.0.0}-$ARCH" | tar xv
+
+      for filename in */json; do
+        [ -e "$filename" ] || continue
+        jq --compact-output 'del(.architecture)' "$filename" | sponge "$filename"
+      done
+
+      for filename in *.json; do
+        [ -e "$filename" ] || continue
+        ! [ $filename = "manifest.json" ] || continue
+
+        jq --arg architecture "$ARCH" \
+           --compact-output '.architecture=$architecture' "$filename" | sponge "$filename"
+      done
+
+      tar cv . | docker load
+
+      docker inspect "$TRAVIS_REPO_SLUG:${TRAVIS_TAG:-v0.0.0}-$ARCH"
     fi
 
 before_deploy:
@@ -77,27 +111,26 @@ before_deploy:
   - echo -n "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USERNAME" --password-stdin
 
 deploy:
+  #  - provider: releases
+  #    skip_cleanup: true
+  #    file_glob: true
+  #    file: build/*
+  #    api_key:
+  #      secure: CnjUhD6PoSZ1qv+/OjdJ7c1QLyPX3X31hXRMkgcG4trP8W+QrDDmixYpcJbHdc/mNrFsiJ8/L2Qm8mLUnSaLIf/HbSHp0EzxKuDU2Rdb2MGRuDUqLyWSHGbY67otTXvEYVagoFmg8s6cEVincDMckD47uyw5L2NduwyNs0hg1TizVZyTnfAba2WsKSwHJpA01yVRTuIH92J38jFWUjqZkgDyMVYG7G7vb+mU3WNLyxBfzJVkLXzOWx0ELyxWi6X9BT/8Ib0Q/m3SUFan3XteQlMkeSEUPnbdmfL4FYlm/oXfqrigunRCp7edD1wgnrP3sHkKbl5NtHU5I6BHFaiT42M8Rr1Snp9wOzvCtjDb+1Ory84+L8iYcueXh0SXNvgCxkZBYsiFVsOEwz8dWpFqVW6R8ADY6x65VhEyBICbRL2kbRgpZyfTlb9nJKw6ZlWwmPDracxKexGD62BTSdlvL0s8C2Y/aJf90oYOAPvv0VuvzE4CUrPod7eKKR/saHhmzrYolLh4Hta552u0uHZNRTsLxVJXuW2QZfKodNJFQWsrDNADPd69Fg1m3USgkspClfb0uQkt5gpaqVE9x9BP0qGjzJ2P/WqNt36qTKLxbtIMcrdmIj7DalxgBeBy9c9OAljs6MjVdcbJWo0Sht7JE5jdM4lVhVjvSRBtgYRInIA=
+  #    on:
+  #      repo: $TRAVIS_REPO_SLUG
+  #      tags: true
+  #        - provider: script
+  #          script: |
+  #            # docker tag $ARCH
+  #            docker images
+  #          on:
+  #            repo: $TRAVIS_REPO_SLUG
+  #            # tags: true
+  #            condition: OS == "linux"
   - provider: script
-    script: docker push $TRAVIS_REPO_SLUG:${TRAVIS_TAG:-v0.0.0}-$ARCH
+    script: bash ci/docker-push.sh
     on:
       repo: hoshsadiq/m3ufilter
       all_branches: true
 
-
-#  - provider: releases
-#    skip_cleanup: true
-#    file_glob: true
-#    file: build/*
-#    api_key:
-#      secure: CnjUhD6PoSZ1qv+/OjdJ7c1QLyPX3X31hXRMkgcG4trP8W+QrDDmixYpcJbHdc/mNrFsiJ8/L2Qm8mLUnSaLIf/HbSHp0EzxKuDU2Rdb2MGRuDUqLyWSHGbY67otTXvEYVagoFmg8s6cEVincDMckD47uyw5L2NduwyNs0hg1TizVZyTnfAba2WsKSwHJpA01yVRTuIH92J38jFWUjqZkgDyMVYG7G7vb+mU3WNLyxBfzJVkLXzOWx0ELyxWi6X9BT/8Ib0Q/m3SUFan3XteQlMkeSEUPnbdmfL4FYlm/oXfqrigunRCp7edD1wgnrP3sHkKbl5NtHU5I6BHFaiT42M8Rr1Snp9wOzvCtjDb+1Ory84+L8iYcueXh0SXNvgCxkZBYsiFVsOEwz8dWpFqVW6R8ADY6x65VhEyBICbRL2kbRgpZyfTlb9nJKw6ZlWwmPDracxKexGD62BTSdlvL0s8C2Y/aJf90oYOAPvv0VuvzE4CUrPod7eKKR/saHhmzrYolLh4Hta552u0uHZNRTsLxVJXuW2QZfKodNJFQWsrDNADPd69Fg1m3USgkspClfb0uQkt5gpaqVE9x9BP0qGjzJ2P/WqNt36qTKLxbtIMcrdmIj7DalxgBeBy9c9OAljs6MjVdcbJWo0Sht7JE5jdM4lVhVjvSRBtgYRInIA=
-#    on:
-#      repo: $TRAVIS_REPO_SLUG
-#      tags: true
-#        - provider: script
-#          script: |
-#            # docker tag $ARCH
-#            docker images
-#          on:
-#            repo: $TRAVIS_REPO_SLUG
-#            # tags: true
-#            condition: OS == "linux"
