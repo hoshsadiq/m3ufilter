@@ -34,9 +34,11 @@ jobs:
           mkdir -p ~/.docker
           echo '{ "experimental": "enabled" }' > ~/.docker/config.json
           docker version
+      before_script:
+        - echo -n "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USERNAME" --password-stdin
       script:
         - bash ci/docker-manifest.sh
-#      deploy: ~
+      deploy: ~
       if: repo == "hoshsadiq/m3ufilter" # && tag != ""
 env:
   global:
@@ -112,7 +114,7 @@ script:
     fi
 
 before_deploy:
-  - '[[ -d build/ ]] && ls -la build/ || echo "build dir does not exist"'
+  - ls -la build/
   - echo -n "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USERNAME" --password-stdin
 
 deploy:
