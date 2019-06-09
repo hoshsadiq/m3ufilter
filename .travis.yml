@@ -130,6 +130,6 @@ deploy:
     on:
       repo: hoshsadiq/m3ufilter
 #      tags: true
-      condition: OS == "linux"
+      condition: env(OS) == "linux"
       all_branches: true
 
