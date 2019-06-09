@@ -1,5 +1,5 @@
 stages:
-#  - go test
+  - go-test
   - test
   - push-manifests
 
@@ -21,7 +21,7 @@ addons:
 
 jobs:
   include:
-    - stage: go test
+    - stage: go-test
       script:
         - diff -u <(echo -n) <(gofmt -d .)
         - go vet $(go list ./... | grep -v /vendor/)
@@ -56,7 +56,6 @@ env:
     - OS=windows ARCH=386
     - OS=darwin ARCH=amd64
     - OS=darwin ARCH=386
-
 
 install:
   - mkdir -p build
@@ -132,4 +131,3 @@ deploy:
       repo: hoshsadiq/m3ufilter
       tags: true
       condition: $OS = "linux"
-
