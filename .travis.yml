@@ -1,3 +1,8 @@
+stages:
+  - go-test
+  - test
+  - push-manifests
+
 language: go
 
 go:
@@ -9,24 +14,106 @@ services:
 git:
   depth: 1
 
+addons:
+  apt:
+    packages:
+      - jq
+
+jobs:
+  include:
+    - stage: go-test
+      script:
+        - diff -u <(echo -n) <(gofmt -d .)
+        - go vet $(go list ./... | grep -v /vendor/)
+        - go test -v ./... # todo we don't actually have any tests yet, but soon!
+      deploy: ~
+    - stage: push-manifests
+      install:
+        - curl https://get.docker.com | sh
+        - |
+          mkdir -p ~/.docker
+          echo '{ "experimental": "enabled" }' > ~/.docker/config.json
+          docker version
+      before_script:
+        - echo -n "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USERNAME" --password-stdin
+      script:
+        - bash ci/docker-manifest.sh
+      deploy: ~
+      if: repo == "hoshsadiq/m3ufilter" && tag IS present
 env:
   global:
     - GO111MODULE=on
     - CGO_ENABLED=0
+    - DOCKER_USERNAME=hoshsadiq
+    - secure: "kcpY/XlyxCEKmnXsreRXX2aij8/rezYdVprfFrEeSd8Z38HWxxzXVOsyU8hUIVzbRN9teNeaam+tkR5KluNdPNZHSca5LtlpHcO1RAMhooeJYktiVQUbzHkH7DJ0mh4BjxPmHro+R7mh9tLtQa6rSV87vKgR2GvAchJfhqoFAaG2SS5LPDfziO8JdpWXl7p8ULmG/rnJA/gS4WdXIle5S23Up9jt/0YDedw6nrqkjJeRyhDxdgAG8jP+T0/WsqzV3S0muwxNKuSOqnKAdvM8mEGP2l0GRVdS9ct0eXezH6Ox1tUz9amNZ8agN+4tQlgTlmrV0WwEjtf59gg3os+a6xzWD/9ZkqJCEmRtby+33/MjRt8bRsA3sBpeei6yV2OTbFlNDZf5eyMgyn9dBKzLX1LBbFIrbLB6zHqKG33BVMOql6XrqG/Kx+z6rQR216gNxL/pZ8PMCKpu8ZmKYsuAQp+55ixpr/RBVZTyPYiTXWOkg+qEPLVr/UBkDHumv/Tijkrj77fRvvJU3NETuaHC+KidqnL1pVJ+53zGdhQ4rYqtJyXqzSD+3tHTqE4H2b1XI1Um81E0bw0jzWegjYVg5BQpLkj/bopTl2grOwcpNt3RLChIXY8Up4xI/iRBo7U6M2IHtNFXQZ3XfQaU79sfHU29TutFO7EbfjRUkuBr/u0="
 
-before_script:
+  matrix:
+    - OS=linux ARCH=amd64
+    - OS=linux ARCH=386
+    - OS=linux ARCH=arm
+    - OS=linux ARCH=arm64
+    - OS=windows ARCH=amd64
+    - OS=windows ARCH=386
+    - OS=darwin ARCH=amd64
+    - OS=darwin ARCH=386
+
+install:
   - mkdir -p build
   - go get github.com/mitchellh/gox
-  - diff -u <(echo -n) <(gofmt -d .)
-  - go mod vendor
-  - go vet $(go list ./... | grep -v /vendor/)
-  - go test -v ./... # todo we don't actually have any tests yet, but soon!
+
+before_script:
+  - docker version
+  - |
+    if [[ "$OS" == "linux" ]]; then
+        mkdir -p ~/.docker
+        echo '{"experimental":true}' | sudo tee /etc/docker/daemon.json
+        echo '{"experimental":"enabled"}' > ~/.docker/config.json
+
+        if [[ "$ARCH" != "amd64" ]]; then
+          docker run --rm --privileged multiarch/qemu-user-static:register
+        fi
+    fi
 
 script:
-  - gox -osarch "linux/amd64 linux/386 linux/arm linux/arm64 windows/amd64 windows/386 darwin/amd64 darwin/386" -output "build/m3u-filter_{{.OS}}_{{.Arch}}" github.com/hoshsadiq/m3ufilter/cmd/m3u-filter
+  - gox -osarch "$OS/$ARCH" -output "build/m3u-filter_{{.OS}}_{{.Arch}}" github.com/$TRAVIS_REPO_SLUG/cmd/m3u-filter
+  - |
+    if [[ "$OS" == "linux" ]]; then
+      docker build --build-arg "ARCH=$ARCH" -t $TRAVIS_REPO_SLUG:${TRAVIS_TAG:-v0.0.0}-$ARCH .
 
-after_script:
+
+      # based on https://github.com/rmoriz/multiarch-test/blob/master/hooks/build
+      tempdir=$(mktemp -d -t docker-rearch.XXXXXXXX)
+      pushd $tempdir
+
+      echo "Set docker image architecture to $arch"
+
+      docker save "$TRAVIS_REPO_SLUG:${TRAVIS_TAG:-v0.0.0}-$ARCH" | tar xv -C $tempdir
+
+      docker rmi "$TRAVIS_REPO_SLUG:${TRAVIS_TAG:-v0.0.0}-$ARCH"
+
+      for filename in $tempdir/*/json; do
+        [ -e "$filename" ] || continue
+        newJson="$(jq --compact-output 'del(.architecture)' "$filename")"
+        echo "$newJson" > "$filename"
+      done
+
+      for filename in $tempdir/*.json; do
+        [ -e "$filename" ] || continue
+        ! [ $filename = "$tempdir/manifest.json" ] || continue
+
+        newJson="$(jq --arg architecture "$ARCH" --compact-output '.architecture=$architecture' "$filename")"
+        echo "$newJson" > "$filename"
+      done
+
+      tar cv . | docker load
+      popd
+
+      docker inspect "$TRAVIS_REPO_SLUG:${TRAVIS_TAG:-v0.0.0}-$ARCH"
+    fi
+
+before_deploy:
   - ls -la build/
+  - echo -n "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USERNAME" --password-stdin
 
 deploy:
   - provider: releases
@@ -38,3 +125,9 @@ deploy:
     on:
       repo: hoshsadiq/m3ufilter
       tags: true
+  - provider: script
+    script: bash ci/docker-push.sh
+    on:
+      repo: hoshsadiq/m3ufilter
+      tags: true
+      condition: $OS = "linux"
