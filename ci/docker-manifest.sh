@@ -18,4 +18,6 @@ for version in "${versions[@]}"; do
     manifestLists+=("$TRAVIS_REPO_SLUG:$version")
 done
 
-docker manifest push "${manifestLists[@]}"
+for manifestList in "${manifestLists[@]}"; do
+    docker manifest push "$manifestList"
+done
