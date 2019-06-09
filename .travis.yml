@@ -1,5 +1,5 @@
 stages:
-  - go test
+#  - go test
   - test
   - push-manifests
 
@@ -21,12 +21,12 @@ addons:
 
 jobs:
   include:
-    - stage: go test
-      script:
-        - diff -u <(echo -n) <(gofmt -d .)
-        - go vet $(go list ./... | grep -v /vendor/)
-        - go test -v ./... # todo we don't actually have any tests yet, but soon!
-      deploy: ~
+#    - stage: go test
+#      script:
+#        - diff -u <(echo -n) <(gofmt -d .)
+#        - go vet $(go list ./... | grep -v /vendor/)
+#        - go test -v ./... # todo we don't actually have any tests yet, but soon!
+#      deploy: ~
     - stage: push-manifests
       install:
         - curl https://get.docker.com | sh
@@ -86,22 +86,26 @@ script:
 
       echo "Set docker image architecture to $arch"
 
-      docker save "$TRAVIS_REPO_SLUG:${TRAVIS_TAG:-v0.0.0}-$ARCH" | tar xv
+      docker save "$TRAVIS_REPO_SLUG:${TRAVIS_TAG:-v0.0.0}-$ARCH" | tar xv -C $tempdir
 
-      for filename in */json; do
+      docker rmi "$TRAVIS_REPO_SLUG:${TRAVIS_TAG:-v0.0.0}-$ARCH"
+
+      for filename in $tempdir/*/json; do
         [ -e "$filename" ] || continue
-        jq --compact-output 'del(.architecture)' "$filename" | sponge "$filename"
+        newJson="$(jq --compact-output 'del(.architecture)' "$filename")"
+        echo "$newJson" > "$filename"
       done
 
-      for filename in *.json; do
+      for filename in $tempdir/*.json; do
         [ -e "$filename" ] || continue
-        ! [ $filename = "manifest.json" ] || continue
+        ! [ $filename = "$tempdir/manifest.json" ] || continue
 
-        jq --arg architecture "$ARCH" \
-           --compact-output '.architecture=$architecture' "$filename" | sponge "$filename"
+        newJson="$(jq --arg architecture "$ARCH" --compact-output '.architecture=$architecture' "$filename")"
+        echo "$newJson" > "$filename"
       done
 
       tar cv . | docker load
+      popd
 
       docker inspect "$TRAVIS_REPO_SLUG:${TRAVIS_TAG:-v0.0.0}-$ARCH"
     fi
