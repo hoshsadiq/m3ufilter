@@ -6,7 +6,7 @@ token="$(curl -s "https://auth.docker.io/token?service=registry.docker.io&scope=
 allTags="$(curl -Ls "https://index.docker.io/v2/$TRAVIS_REPO_SLUG/tags/list" -H "Authorization: Bearer $token" | jq '.tags')"
 
 manifestLists=()
-versions=("${TRAVIS_TAG}" "latest")
+versions=("${TRAVIS_TAG:v0.0.0}" "latest")
 for version in "${versions[@]}"; do
     tags=($(echo "$allTags" | jq -r --arg version "$version" '.[] | select(. | startswith($version))'))
     manifests=()
