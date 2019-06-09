@@ -37,7 +37,7 @@ jobs:
       script:
         - bash ci/docker-manifest.sh
       deploy: ~
-      if: repo == "hoshsadiq/m3ufilter" && tag != ""
+      if: repo == "hoshsadiq/m3ufilter" # && tag != ""
 env:
   global:
     - GO111MODULE=on
@@ -129,6 +129,6 @@ deploy:
     script: bash ci/docker-push.sh
     on:
       repo: hoshsadiq/m3ufilter
-      tags: true
+#      tags: true
       condition: OS == "linux"
 
