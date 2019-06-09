@@ -36,7 +36,7 @@ jobs:
           docker version
       script:
         - bash ci/docker-manifest.sh
-      deploy: ~
+#      deploy: ~
       if: repo == "hoshsadiq/m3ufilter" # && tag != ""
 env:
   global:
@@ -112,7 +112,7 @@ script:
     fi
 
 before_deploy:
-  - ls -la build/
+  - '[[ -d build/ ]] && ls -la build/ || echo "build dir does not exist"'
   - echo -n "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USERNAME" --password-stdin
 
 deploy:
