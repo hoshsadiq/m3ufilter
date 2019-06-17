@@ -75,7 +75,18 @@ before_script:
     fi
 
 script:
-  - gox -osarch "$OS/$ARCH" -output "build/m3u-filter_{{.OS}}_{{.Arch}}" github.com/$TRAVIS_REPO_SLUG/cmd/m3u-filter
+  - export BUILD_DATE="$(date --iso-8601=seconds)"
+  - gox
+      -ldflags "
+        -X github.com/hoshsadiq/m3ufilter/config.Version=${TRAVIS_TAG:-nightly}
+        -X github.com/hoshsadiq/m3ufilter/config.GitCommit=${TRAVIS_COMMIT}
+        -X github.com/hoshsadiq/m3ufilter/config.BuildDate=${BUILD_DATE}
+        -X github.com/hoshsadiq/m3ufilter/config.GoVersion=${TRAVIS_GO_VERSION}
+        -X github.com/hoshsadiq/m3ufilter/config.Platform=${OS}/${ARCH}
+      "
+      -osarch "$OS/$ARCH"
+      -output "build/m3u-filter_{{.OS}}_{{.Arch}}"
+      github.com/$TRAVIS_REPO_SLUG/cmd/m3u-filter
   - |
     if [[ "$OS" == "linux" ]]; then
       docker build --build-arg "ARCH=$ARCH" -t $TRAVIS_REPO_SLUG:${TRAVIS_TAG:-v0.0.0}-$ARCH .
