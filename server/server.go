@@ -13,7 +13,7 @@ var log = logger.Get()
 
 var playlists *m3u.Streams
 
-var lock *bool
+var lock bool
 
 func Serve(conf *config.Config) {
 	schedule := conf.Core.UpdateSchedule
@@ -42,17 +42,15 @@ func Serve(conf *config.Config) {
 }
 
 func updatePlaylist(conf *config.Config) {
-	if lock != nil && *lock {
+	if lock {
 		log.Info("Retrieval is locked, trying again next time...")
 		return
 	}
 
-	b := true
-	lock = &b
+	lock = true
 	log.Info("updating playlists")
 	newPlaylists := m3u.GetPlaylist(conf)
 	playlists = &newPlaylists
 	log.Info("done")
-	b = false
-	lock = &b
+	lock = false
 }

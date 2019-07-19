@@ -22,37 +22,37 @@ func writeM3U(w io.Writer, streams []*m3u.Stream) {
 }
 
 func getStreamExtinf(stream *m3u.Stream) []byte {
-	var str strings.Builder
-	str.WriteString("\n")
-	str.WriteString("#EXTINF:")
-	str.WriteString(stream.Duration)
+	b := strings.Builder{}
+	b.WriteString("\n")
+	b.WriteString("#EXTINF:")
+	b.WriteString(stream.Duration)
 
 	if stream.ChNo != "" {
-		str.WriteString(` tvg-chno=`)
-		str.WriteString(stream.ChNo)
+		b.WriteString(` tvg-chno=`)
+		b.WriteString(stream.ChNo)
 	}
 
-	str.WriteString(` tvg-id=`)
-	str.WriteString(strconv.Quote(stream.Id))
+	b.WriteString(` tvg-id=`)
+	b.WriteString(strconv.Quote(stream.Id))
 
 	if stream.Shift != "" {
-		str.WriteString(` tvg-shift=`)
-		str.WriteString(stream.Shift)
+		b.WriteString(` tvg-shift=`)
+		b.WriteString(stream.Shift)
 	}
 
-	str.WriteString(` tvg-name=`)
-	str.WriteString(strconv.Quote(stream.Name))
+	b.WriteString(` tvg-name=`)
+	b.WriteString(strconv.Quote(stream.Name))
 
-	str.WriteString(` tvg-logo=`)
-	str.WriteString(strconv.Quote(stream.Logo))
+	b.WriteString(` tvg-logo=`)
+	b.WriteString(strconv.Quote(stream.Logo))
 
-	str.WriteString(` group-title=`)
-	str.WriteString(strconv.Quote(stream.Group))
+	b.WriteString(` group-title=`)
+	b.WriteString(strconv.Quote(stream.Group))
 
-	str.WriteRune(',')
-	str.WriteString(stream.Name)
-	str.WriteString("\n")
-	str.WriteString(stream.Uri)
+	b.WriteRune(',')
+	b.WriteString(stream.Name)
+	b.WriteString("\n")
+	b.WriteString(stream.Uri)
 
-	return []byte(str.String())
+	return []byte(b.String())
 }

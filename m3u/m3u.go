@@ -30,11 +30,12 @@ type Stream struct {
 	Uri      string
 
 	// these are attributes
-	ChNo  string
-	Id    string
-	Shift string
-	Logo  string
-	Group string
+	ChNo    string
+	Id      string
+	TvgName string
+	Shift   string
+	Logo    string
+	Group   string
 }
 
 func decode(reader io.Reader, providerConfig *config.Provider) (Streams, error) {
@@ -132,8 +133,8 @@ func parseExtinfLine(attrline string, urlLine string) (*Stream, error) {
 					stream.Id = value
 				case "tvg-shift":
 					stream.Shift = value
-				//case "tvg-name": // todo do we want tvgname or title?
-				//	stream.Name = value
+				case "tvg-name":
+					stream.Name = value
 				case "tvg-logo":
 					stream.Logo = value
 				case "group-title":

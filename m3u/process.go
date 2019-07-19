@@ -11,17 +11,14 @@ import (
 
 var log = logger.Get()
 
+var client *http.Client
+
 func GetPlaylist(conf *config.Config) Streams {
-	transport := &http.Transport{}
-	transport.RegisterProtocol("file", http.NewFileTransport(http.Dir("/")))
-	client := &http.Client{
-		Timeout: time.Second * 3,
-		Transport: transport,
-	}
+	createClientIfNotExists()
 
 	streams := Streams{}
 	for _, provider := range conf.Providers {
-		log.Infof("reading from provder %s", provider.Uri)
+		log.Infof("reading from provider %s", provider.Uri)
 		resp, err := client.Get(provider.Uri)
 		if err != nil {
 			log.Errorf("could not retrieve playlist from provider %s, err = %v", provider.Uri, err)
@@ -41,4 +38,15 @@ func GetPlaylist(conf *config.Config) Streams {
 	sort.Sort(streams)
 
 	return streams
+}
+
+func createClientIfNotExists() {
+	if client == nil {
+		transport := &http.Transport{}
+		transport.RegisterProtocol("file", http.NewFileTransport(http.Dir("/")))
+		client = &http.Client{
+			Timeout:   time.Second * 3,
+			Transport: transport,
+		}
+	}
 }
