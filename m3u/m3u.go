@@ -17,7 +17,17 @@ func (s Streams) Len() int {
 
 func (s Streams) Less(i, j int) bool {
 	groupOrder := config.Get().GetGroupOrder()
-	return groupOrder[s[i].Group] < groupOrder[s[j].Group]
+	iOrder, ok := groupOrder[s[i].Group]
+	if !ok {
+		return true
+	}
+
+	jOrder, ok := groupOrder[s[j].Group]
+	if !ok {
+		return false
+	}
+
+	return iOrder < jOrder
 }
 
 func (s Streams) Swap(i, j int) {

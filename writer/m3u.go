@@ -10,13 +10,14 @@ import (
 func writeM3U(w io.Writer, streams []*m3u.Stream) {
 	_, err := w.Write([]byte("#EXTM3U"))
 	if err != nil {
-		log.Fatalf("unable to write new streams, err = %v", err)
+		log.Fatalf("unable to write extm3u, err = %v", err)
 	}
 
 	for _, stream := range streams {
-		_, err := w.Write(getStreamExtinf(stream))
+		extinf := getStreamExtinf(stream)
+		_, err := w.Write(extinf)
 		if err != nil {
-			log.Fatalf("unable to write new streams, err = %v", err)
+			log.Fatalf("unable to write new streams, err = %v, extinf = %v", err, extinf)
 		}
 	}
 }
@@ -43,11 +44,11 @@ func getStreamExtinf(stream *m3u.Stream) []byte {
 	b.WriteString(` tvg-name=`)
 	b.WriteString(strconv.Quote(stream.Name))
 
-	b.WriteString(` tvg-logo=`)
-	b.WriteString(strconv.Quote(stream.Logo))
-
 	b.WriteString(` group-title=`)
 	b.WriteString(strconv.Quote(stream.Group))
+
+	b.WriteString(` tvg-logo=`)
+	b.WriteString(strconv.Quote(stream.Logo))
 
 	b.WriteRune(',')
 	b.WriteString(stream.Name)
