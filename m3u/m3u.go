@@ -134,7 +134,7 @@ func parseExtinfLine(attrline string, urlLine string) (*Stream, error) {
 				case "tvg-shift":
 					stream.Shift = value
 				case "tvg-name":
-					stream.Name = value
+					stream.TvgName = value
 				case "tvg-logo":
 					stream.Logo = value
 				case "group-title":

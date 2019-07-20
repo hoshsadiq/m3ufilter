@@ -21,6 +21,10 @@ func Serve(conf *config.Config) {
 		schedule = "*/24 * * * *"
 	}
 
+	if playlists == nil {
+		playlists = &m3u.Streams{}
+	}
+
 	log.Info("Scheduling cronjob to periodically update playlist.")
 	ctab := crontab.New()
 	ctab.MustAddJob(conf.Core.UpdateSchedule, func() {
