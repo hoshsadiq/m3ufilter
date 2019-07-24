@@ -24,7 +24,12 @@ func GetPlaylist(conf *config.Config) Streams {
 			log.Errorf("could not retrieve playlist from provider %s, err = %v", provider.Uri, err)
 			continue
 		}
-		defer resp.Body.Close()
+		defer func() {
+			err := resp.Body.Close()
+			if err != nil {
+				log.Errorf("could not close request body for provider %s, err = %v", provider.Uri, err)
+			}
+		}()
 
 		pl, err := decode(bufio.NewReader(resp.Body), provider)
 		if err != nil {
