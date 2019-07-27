@@ -3,20 +3,19 @@ package m3u
 import (
 	"bufio"
 	"github.com/hoshsadiq/m3ufilter/config"
+	"github.com/hoshsadiq/m3ufilter/http"
 	"github.com/hoshsadiq/m3ufilter/logger"
-	"net/http"
 	"sort"
-	"time"
 )
 
 var log = logger.Get()
 
-var client *http.Client
+var client = http.NewClient(200, 5)
 
 func GetPlaylist(conf *config.Config) Streams {
-	createClientIfNotExists()
-
 	streams := Streams{}
+	// todo we can do each provider in its own coroutine, then converged at the end.
+	//   furthermore, each line can be done in its own coroutine as well.
 	for _, provider := range conf.Providers {
 		log.Infof("reading from provider %s", provider.Uri)
 		resp, err := client.Get(provider.Uri)
@@ -43,15 +42,4 @@ func GetPlaylist(conf *config.Config) Streams {
 	sort.Sort(streams)
 
 	return streams
-}
-
-func createClientIfNotExists() {
-	if client == nil {
-		transport := &http.Transport{}
-		transport.RegisterProtocol("file", http.NewFileTransport(http.Dir("/")))
-		client = &http.Client{
-			Timeout:   time.Second * 3,
-			Transport: transport,
-		}
-	}
 }
