@@ -9,6 +9,8 @@ import (
 	"strings"
 )
 
+var conf = config.Get()
+
 type Streams []*Stream
 
 func (s Streams) Len() int {
@@ -16,7 +18,7 @@ func (s Streams) Len() int {
 }
 
 func (s Streams) Less(i, j int) bool {
-	groupOrder := config.Get().GetGroupOrder()
+	groupOrder := conf.GetGroupOrder()
 	iOrder, ok := groupOrder[s[i].Group]
 	if !ok {
 		return true

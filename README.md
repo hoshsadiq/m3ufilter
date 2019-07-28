@@ -64,7 +64,7 @@ providers:
 
     What to output. This can be either `csv` or `m3u`. CSV is useful for debugging and ensuring you've gone through all the channels, outside that, you generally want this to be `m3u`.
 
-- `core.group_order`
+- `core.group_order` (experimental)
 
     The order to put the categories in.
 
