@@ -1,6 +1,6 @@
 FROM scratch
 
-ADD assets/passwd.nobody /etc/passwd
+ADD ci/assets/passwd.nobody /etc/passwd
 
 USER nobody
 
