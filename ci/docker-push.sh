@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# todo need to also do v1, v1.1, v1.1.1 etc
+
 docker tag $TRAVIS_REPO_SLUG:${TRAVIS_TAG}-$ARCH $TRAVIS_REPO_SLUG:latest-$ARCH
 
 docker push $TRAVIS_REPO_SLUG:${TRAVIS_TAG}-$ARCH

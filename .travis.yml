@@ -38,6 +38,7 @@ jobs:
         - echo -n "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USERNAME" --password-stdin
       script:
         - bash ci/docker-manifest.sh
+        - bash ci/docker-push-readme.sh "$TRAVIS_REPO_SLUG" ./docker-hub-readme.md
       deploy: ~
       if: repo == "hoshsadiq/m3ufilter" && tag IS present
 env:
