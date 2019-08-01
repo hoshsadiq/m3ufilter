@@ -71,6 +71,21 @@ func TestExtinfLineParser(t *testing.T) {
 			},
 		},
 		{
+			attrLine: `#EXTINF:-1 tvg-id="channel.uk" tvg-name="Channel\" Name" tvg-logo="http://imgur.com/img.png" group-title="Channel Group",Stream Name`,
+			urlLine:  "http://somestreamer.com/mystream.mp4",
+			expectedStream: &Stream{
+				Duration: "-1",
+				Group:    "Channel Group",
+				TvgName:  `Channel" Name`,
+				ChNo:     "",
+				Shift:    "",
+				Uri:      "http://somestreamer.com/mystream.mp4",
+				Logo:     "http://imgur.com/img.png",
+				Name:     "Stream Name",
+				Id:       "channel.uk",
+			},
+		},
+		{
 			attrLine:  `#EXTINF:-1 tvg-id="channel.uk tvg-name="Channel Name" tvg-logo="http://imgur.com/img.png" group-title="Channel Group",Stream Name`,
 			urlLine:   "http://somestreamer.com/mystream.mp4",
 			errorText: `Unexpected character '"' found, expected '=' for key Name on position 52 in line: #EXTINF:-1 tvg-id="channel.uk tvg-name="Channel Name" tvg-logo="http://imgur.com/img.png" group-title="Channel Group",Stream Name`,

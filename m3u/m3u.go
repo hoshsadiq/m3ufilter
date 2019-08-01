@@ -54,7 +54,8 @@ func decode(reader io.Reader, providerConfig *config.Provider) (Streams, error) 
 	buf := new(bytes.Buffer)
 	_, err := buf.ReadFrom(reader)
 	if err != nil {
-		return Streams{}, err
+		log.Infof("Failed to read from reader to decode m3u due to err = %v", err)
+		return nil, err
 	}
 
 	var eof bool
@@ -134,6 +135,24 @@ func parseExtinfLine(attrline string, urlLine string) (*Stream, error) {
 	for i := 8; i < len(attrline); i++ {
 		c := attrline[i]
 
+		if escapeNext {
+			if state == "duration" {
+				stream.Duration += string(c)
+			} else if state == "keyname" {
+				key += string(c)
+			} else if state == "quotes" {
+				value += string(c)
+			}
+
+			escapeNext = false
+			continue
+		}
+
+		if c == '\\' {
+			escapeNext = true
+			continue
+		}
+
 		if state == "quotes" {
 			if string(c) != quote {
 				value += string(c)
@@ -160,22 +179,6 @@ func parseExtinfLine(attrline string, urlLine string) (*Stream, error) {
 			continue
 		} else if state == "name" {
 			stream.Name += string(c)
-			continue
-		}
-
-		if escapeNext {
-			if state == "duration" {
-				stream.Duration += string(c)
-			} else if state == "keyname" {
-				key += string(c)
-			}
-
-			escapeNext = false
-			continue
-		}
-
-		if c == '\\' {
-			escapeNext = true
 			continue
 		}
 

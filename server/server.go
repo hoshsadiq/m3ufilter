@@ -53,8 +53,12 @@ func updatePlaylist(conf *config.Config) {
 
 	lock = true
 	log.Info("updating playlists")
-	newPlaylists := m3u.GetPlaylist(conf)
-	playlists = &newPlaylists
-	log.Info("done")
+	newPlaylists, allFailed := m3u.GetPlaylist(conf)
+	if allFailed {
+		log.Info("Skipping updating playlist to server as all providers failed")
+	} else {
+		playlists = &newPlaylists
+	}
+	log.Info("Done")
 	lock = false
 }
