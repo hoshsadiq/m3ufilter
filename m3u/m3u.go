@@ -7,6 +7,7 @@ import (
 	"github.com/hoshsadiq/m3ufilter/config"
 	"io"
 	"strings"
+	"time"
 )
 
 var conf = config.Get()
@@ -62,6 +63,7 @@ func decode(reader io.Reader, providerConfig *config.Provider) (Streams, error) 
 	streams := Streams{}
 
 	lines := 0
+	start := time.Now()
 	for !eof {
 		var extinfLine string
 		var urlLine string
@@ -79,10 +81,6 @@ func decode(reader io.Reader, providerConfig *config.Provider) (Streams, error) 
 		}
 
 		lines++
-		if (lines % 1000) == 0 {
-			log.Infof("Parsing %d streams", lines)
-		}
-
 		stream, err := parseExtinfLine(extinfLine, urlLine)
 		if err != nil {
 			return nil, err
@@ -96,8 +94,9 @@ func decode(reader io.Reader, providerConfig *config.Provider) (Streams, error) 
 
 		streams = append(streams, stream)
 	}
+	end := time.Since(start).Truncate(time.Duration(time.Millisecond))
 
-	log.Infof("Found %d valid streams", len(streams))
+	log.Infof("Matched %d valid streams out of %d. Took %s", len(streams), lines, end)
 
 	return streams, nil
 }
