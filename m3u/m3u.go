@@ -7,6 +7,7 @@ import (
 	"github.com/hoshsadiq/m3ufilter/config"
 	"io"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -61,10 +62,9 @@ func decode(conf *config.Config, reader io.Reader, providerConfig *config.Provid
 	groupOrder = conf.GetGroupOrder()
 
 	var eof bool
-	streams := Streams{}
 
-	lines := 0
 	start := time.Now()
+	var unparsedStreams [][2]string
 	for !eof {
 		var extinfLine string
 		var urlLine string
@@ -81,28 +81,49 @@ func decode(conf *config.Config, reader io.Reader, providerConfig *config.Provid
 			break
 		}
 
-		lines++
-		stream, err := parseExtinfLine(extinfLine, urlLine)
-		if err != nil {
-			if providerConfig.IgnoreParseErrors {
-				continue
+		unparsedStreams = append(unparsedStreams, [2]string{extinfLine, urlLine})
+	}
+
+	streams := make(Streams, len(unparsedStreams))
+	var wg sync.WaitGroup
+	for i, unparsedStream := range unparsedStreams {
+		extinfLine := unparsedStream[0]
+		urlLine := unparsedStream[1]
+
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			stream, _ := parseExtinfLine(extinfLine, urlLine)
+			if err != nil {
+				log.Warn(err)
+				if !providerConfig.IgnoreParseErrors {
+					log.Warn("todo we should stop processing playlists.")
+				}
+				return
 			}
-			return nil, err
-		}
 
 		if !shouldIncludeStream(stream, providerConfig.Filters, providerConfig.CheckStreams) {
-			continue
+			return
 		}
 
-		setSegmentValues(stream, providerConfig.Setters)
+			setSegmentValues(stream, providerConfig.Setters)
 
-		streams = append(streams, stream)
+			streams[i] = stream
+		}(i)
 	}
+	wg.Wait()
 	end := time.Since(start).Truncate(time.Duration(time.Millisecond))
 
-	log.Infof("Matched %d valid streams out of %d. Took %s", len(streams), lines, end)
+	filteredStreams := streams[:0]
+	for _, x := range streams {
+		if x != nil {
+			filteredStreams = append(filteredStreams, x)
+		}
+	}
 
-	return streams, nil
+	log.Infof("Matched %d valid streams out of %d. Took %s", len(filteredStreams), len(unparsedStreams), end)
+
+	return filteredStreams, nil
 }
 
 func getLine(buf *bytes.Buffer) (string, bool) {

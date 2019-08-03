@@ -20,7 +20,6 @@ func GetPlaylist(conf *config.Config) (streams Streams, allFailed bool) {
 
 	errors := 0
 	// todo we can do each provider in its own coroutine, then converged at the end.
-	//   furthermore, each line can be done in its own coroutine as well.
 	for _, provider := range conf.Providers {
 		u, err := url.Parse(provider.Uri)
 		if err != nil {
