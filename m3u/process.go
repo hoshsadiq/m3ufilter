@@ -57,14 +57,14 @@ func NewClient(MaxRetryAttempts int) *http.Client {
 	tr := rehttp.NewTransport(
 		transport,
 		rehttp.RetryAll(
-			rehttp.RetryMaxRetries(MaxRetryAttempts), // max 3 retries for Temporary errors
-			rehttp.RetryStatuses(200), // max 3 retries for Temporary errors
+			rehttp.RetryMaxRetries(MaxRetryAttempts),
+			rehttp.RetryStatuses(200),
 			rehttp.RetryTemporaryErr(),
 		),
-		rehttp.ConstDelay(time.Second),                                         // wait 1s between retries
+		rehttp.ConstDelay(time.Second),
 	)
 	return &http.Client{
-		Timeout: time.Second * 10,
+		Timeout:   time.Second * 10,
 		Transport: tr,
 	}
 }
