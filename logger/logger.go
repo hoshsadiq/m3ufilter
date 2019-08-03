@@ -8,6 +8,7 @@ import (
 )
 
 var logger *logrus.Logger
+var callerinfo = getPackage() + "/"
 
 func Get() *logrus.Logger {
 	if logger == nil {
@@ -17,7 +18,7 @@ func Get() *logrus.Logger {
 			DisableColors: true,
 			FullTimestamp: true,
 			CallerPrettyfier: func(f *runtime.Frame) (string, string) {
-				repopath := strings.Split(f.File, "github.com/hoshsadiq/")[1]
+				repopath := strings.Split(f.File, callerinfo)[1]
 				return fmt.Sprintf("%s()", f.Function), fmt.Sprintf("%s:%d", repopath, f.Line)
 			},
 		})
@@ -28,4 +29,11 @@ func Get() *logrus.Logger {
 	}
 
 	return logger
+}
+
+func getPackage() string {
+	pc, _, _, _ := runtime.Caller(1)
+	parts := strings.Split(runtime.FuncForPC(pc).Name(), "/")
+	pkage := strings.Join(parts[0:len(parts)-1], "/")
+	return pkage
 }
