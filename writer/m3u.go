@@ -13,11 +13,11 @@ func writeM3U(w io.Writer, streams []*m3u.Stream) {
 		log.Fatalf("unable to write extm3u, err = %v", err)
 	}
 
-	for _, stream := range streams {
+	for i, stream := range streams {
 		extinf := getStreamExtinf(stream)
 		_, err := w.Write(extinf)
 		if err != nil {
-			log.Fatalf("unable to write new streams, err = %v, extinf = %v", err, extinf)
+			log.Fatalf("unable to write new streams, i = %d, err = %v, extinf = %v", i, err, extinf)
 		}
 	}
 }

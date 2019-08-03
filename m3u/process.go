@@ -55,7 +55,7 @@ func NewClient(MaxRetryAttempts int) *http.Client {
 	transport.RegisterProtocol("file", http.NewFileTransport(http.Dir("/")))
 
 	tr := rehttp.NewTransport(
-		nil, // will use http.DefaultTransport
+		transport,
 		rehttp.RetryAll(
 			rehttp.RetryMaxRetries(MaxRetryAttempts), // max 3 retries for Temporary errors
 			rehttp.RetryStatuses(200), // max 3 retries for Temporary errors
