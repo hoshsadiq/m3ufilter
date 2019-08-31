@@ -178,6 +178,15 @@ setters:
 
 Note that prefixing it with an equals marks the whole expression as literal string, excluding the equals. If you want a string with an equals in front of the text, you'll need to use two equals.
 
+### Server endpoints
+The following server endpoints are available for use:
+
+- `GET /playlist.m3u`
+  This will return the final filtered and updated playlist. This is what you would point your player to so it can get an up to date playlist.
+
+- `POST /update`
+  This is used to force the application to retrieve the latest version of all the providers. This is an asynchronous operation, and will return 204 on success.
+
 ## Future plans
 The idea behind this is to a be one stop shop for generating both xmltv and m3u files from any source.
 This will eventually add support for xml, and will automatically try and match up channels and EPG data should this not exist.
