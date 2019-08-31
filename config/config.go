@@ -55,8 +55,8 @@ func New(filepath string) *Config {
 		filepath: filepath,
 		Core: &Core{
 			AutoReloadConfig: true,
-			UpdateSchedule: "* */24 * * *",
-			Output: "m3u",
+			UpdateSchedule:   "* */24 * * *",
+			Output:           "m3u",
 		},
 	}
 
