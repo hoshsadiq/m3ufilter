@@ -16,11 +16,6 @@ var playlists *m3u.Streams
 var lock bool
 
 func Serve(conf *config.Config) {
-	schedule := conf.Core.UpdateSchedule
-	if schedule == "" {
-		schedule = "*/24 * * * *"
-	}
-
 	if playlists == nil {
 		playlists = &m3u.Streams{}
 	}
@@ -35,6 +30,7 @@ func Serve(conf *config.Config) {
 	ctab.RunAll()
 
 	log.Info("starting server")
+	// todo add a force-update endpoint
 	http.HandleFunc("/playlist.m3u", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "audio/mpegurl")
 
@@ -49,6 +45,10 @@ func updatePlaylist(conf *config.Config) {
 	if lock {
 		log.Info("Retrieval is locked, trying again next time...")
 		return
+	}
+
+	if conf.Core.AutoReloadConfig {
+		conf.Load()
 	}
 
 	lock = true

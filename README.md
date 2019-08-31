@@ -60,9 +60,15 @@ providers:
     How often it should retrieve the latest channels. This is expressed in [cron syntax](https://github.com/mileusna/crontab#crontab-syntax-). It is highly recommended that you do not set this to a low interval. Set this to at least once every day.
     Default: `true`
 
+- `core.auto_reload_config`
+
+    Whether or not to reload the config before every run. Please note, this will not affect `core.server_listen` and `core.update_schedule`
+    Default: `true`
+
 - `core.output`
 
     What to output. This can be either `csv` or `m3u`. CSV is useful for debugging and ensuring you've gone through all the channels, outside that, you generally want this to be `m3u`.
+    Default: `m3u`
 
 - `core.group_order` (experimental)
 

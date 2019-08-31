@@ -8,8 +8,6 @@ import (
 	"github.com/hoshsadiq/m3ufilter/server"
 	"github.com/hoshsadiq/m3ufilter/writer"
 	"github.com/mitchellh/go-homedir"
-	"gopkg.in/yaml.v2"
-	"io/ioutil"
 	"os"
 )
 
@@ -36,17 +34,7 @@ func run(configFilename string, stdout *os.File, stderr *os.File) {
 	log := logger.Get()
 	log.SetOutput(stderr)
 
-	yamlFile, err := ioutil.ReadFile(configFilename)
-	if err != nil {
-		log.Fatalf("could not read config file %s, err = %v", configFilename, err)
-	}
-
-	conf := config.Get()
-	err = yaml.Unmarshal([]byte(yamlFile), &conf)
-	if err != nil {
-		log.Fatalf("could not parse config file %s, err = %v", configFilename, err)
-	}
-
+	conf := config.New(configFilename)
 	if conf.Core.ServerListen != "" {
 		server.Serve(conf)
 	} else {

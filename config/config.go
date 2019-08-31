@@ -1,15 +1,23 @@
 package config
 
+import (
+	"gopkg.in/yaml.v2"
+	"io/ioutil"
+	"log"
+)
+
 type Config struct {
+	filepath  string
 	Core      *Core
 	Providers []*Provider
 }
 
 type Core struct {
-	ServerListen   string `yaml:"server_listen"`
-	Output         string
-	UpdateSchedule string   `yaml:"update_schedule"`
-	GroupOrder     []string `yaml:"group_order"`
+	ServerListen     string `yaml:"server_listen"`
+	AutoReloadConfig bool   `yaml:"auto_reload_config"`
+	Output           string
+	UpdateSchedule   string   `yaml:"update_schedule"`
+	GroupOrder       []string `yaml:"group_order"`
 
 	groupOrderMap map[string]int
 }
@@ -42,12 +50,35 @@ type Replacer struct {
 
 var config *Config
 
-func Get() *Config {
-	if config == nil {
-		config = &Config{}
+func New(filepath string) *Config {
+	config = &Config{
+		filepath: filepath,
+		Core: &Core{
+			AutoReloadConfig: true,
+			UpdateSchedule: "* */24 * * *",
+			Output: "m3u",
+		},
 	}
 
+	config.Load()
+
 	return config
+}
+
+func Get() *Config {
+	return config
+}
+
+func (c *Config) Load() {
+	yamlFile, err := ioutil.ReadFile(c.filepath)
+	if err != nil {
+		log.Fatalf("could not read config file %s, err = %v", c.filepath, err)
+	}
+
+	err = yaml.Unmarshal([]byte(yamlFile), &c)
+	if err != nil {
+		log.Fatalf("could not parse config file %s, err = %v", c.filepath, err)
+	}
 }
 
 func (c *Config) GetGroupOrder() map[string]int {
