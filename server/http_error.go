@@ -10,10 +10,10 @@ type StatusError struct {
 	Err  error
 }
 
-func (s *StatusError) Error() string {
+func (s StatusError) Error() string {
 	return s.Err.Error()
 }
 
-func (s *StatusError) Status() int {
+func (s StatusError) Status() int {
 	return s.Code
 }

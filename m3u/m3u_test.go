@@ -1,23 +1,18 @@
 package m3u
 
 import (
-	"github.com/hoshsadiq/m3ufilter/config"
 	"reflect"
 	"sort"
 	"testing"
 )
 
 func TestGroupOrder(t *testing.T) {
-	conf = &config.Config{
-		Core: &config.Core{
-			GroupOrder: []string{
-				"Group1",
-				"Group2",
-				"Group3",
-				"Group4",
-				"Group5",
-			},
-		},
+	groupOrder = map[string]int{
+		"Group1": 1,
+		"Group2": 2,
+		"Group3": 3,
+		"Group4": 4,
+		"Group5": 5,
 	}
 
 	streams := Streams{

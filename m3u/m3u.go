@@ -10,6 +10,8 @@ import (
 	"time"
 )
 
+var groupOrder map[string]int
+
 type Streams []*Stream
 
 func (s Streams) Len() int {
@@ -17,7 +19,6 @@ func (s Streams) Len() int {
 }
 
 func (s Streams) Less(i, j int) bool {
-	groupOrder := config.Get().GetGroupOrder()
 	iOrder, ok := groupOrder[s[i].Group]
 	if !ok {
 		return true
@@ -56,6 +57,8 @@ func decode(reader io.Reader, providerConfig *config.Provider) (Streams, error) 
 		log.Infof("Failed to read from reader to decode m3u due to err = %v", err)
 		return nil, err
 	}
+
+	groupOrder = config.Get().GetGroupOrder()
 
 	var eof bool
 	streams := Streams{}
