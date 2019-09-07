@@ -1,23 +1,29 @@
 package cache
 
 import (
-	"github.com/maja42/no-comment"
+	"github.com/antonmedv/expr"
+	"github.com/antonmedv/expr/vm"
 	"regexp"
 	"sync"
 )
 
 var cache sync.Map
 
-func Expr(expr string) string {
-	key := "expr:" + expr
+func Expr(expression string, envArg interface{}) (*vm.Program, error) {
+	key := "expr:" + expression
 	if x, found := cache.Load(key); found {
-		return x.(string)
+		return x.(*vm.Program), nil
 	}
 
-	uncommented := nocomment.StripCStyleComments(expr)
-	cache.Store(key, uncommented)
 
-	return uncommented
+	program, err := expr.Compile(expression, expr.Env(envArg))
+	if err != nil {
+		return nil, err
+	}
+
+	cache.Store(key, program)
+
+	return program, nil
 }
 
 func Regexp(regex string) *regexp.Regexp {

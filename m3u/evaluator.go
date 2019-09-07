@@ -3,22 +3,14 @@ package m3u
 import (
 	"errors"
 	"fmt"
+	"github.com/antonmedv/expr"
 	"github.com/hoshsadiq/m3ufilter/cache"
-	"github.com/maja42/goval"
 	"strings"
 )
 
-var evaluator = goval.NewEvaluator()
-
-func evaluate(ms *Stream, expr string) (result interface{}, err error) {
-	if expr[0] == '=' {
-		return strings.TrimSpace(expr[1:]), nil
-	}
-
-	debug := false
-	if expr[0] == '?' {
-		debug = true
-		expr = strings.TrimSpace(expr[1:])
+func evaluate(ms *Stream, expression string) (result interface{}, err error) {
+	if expression[0] == '=' {
+		return strings.TrimSpace(expression[1:]), nil
 	}
 
 	variables := map[string]interface{}{
@@ -29,16 +21,31 @@ func evaluate(ms *Stream, expr string) (result interface{}, err error) {
 		"Duration": ms.Duration,
 		"Logo":     ms.Logo,
 		"Group":    ms.Group,
+
+		"strlen":  evaluatorStrlen,
+		"match":   evaluatorMatch,
+		"replace": evaluatorReplace,
+		"tvg_id":  evaluatorToTvgId,
+		"title":   evaluatorTitle,
 	}
 
-	expr = cache.Expr(expr)
+	program, err := cache.Expr(expression, variables)
+	if err != nil {
+		fmt.Printf("%v", err)
+		return
+	}
+
+	output, err := expr.Run(program, variables)
+	if err != nil {
+		fmt.Printf("%v", err)
+		return
+	}
+
 
 	//fmt.Printf("Evaluating `%s` using vars %v\n", expr, variables)
-	res, err := evaluator.Evaluate(expr, variables, getEvaluatorFunctions())
-	if debug {
-		log.Infof("Debugging expr %s, res = %s, vars = %v", expr, res, variables)
-	}
-	return res, err
+	//res, err := evaluator.Evaluate(expr, variables, getEvaluatorFunctions())
+	log.Debugf("Debugging expr %s, res = %s, vars = %v", expression, output, variables)
+	return output, err
 }
 
 func evaluateBool(ms *Stream, expr string) (result bool, err error) {
@@ -70,38 +77,19 @@ func evaluateStr(ms *Stream, expr string) (result string, err error) {
 	}
 }
 
-func getEvaluatorFunctions() map[string]goval.ExpressionFunction {
-	return map[string]goval.ExpressionFunction{
-		"strlen":  evaluatorStrlen,
-		"match":   evaluatorMatch,
-		"replace": evaluatorReplace,
-		"tvg_id":  evaluatorToTvgId,
-		"title":   evaluatorTitle,
-	}
+func evaluatorStrlen(str string) int {
+	return len(str)
 }
 
-func evaluatorStrlen(args ...interface{}) (interface{}, error) {
-	length := len(args[0].(string))
-	return (float64)(length), nil
-}
-
-func evaluatorMatch(args ...interface{}) (interface{}, error) {
-	subject := args[0].(string)
-	regexString := args[1].(string)
-
+func evaluatorMatch(subject string, regexString string) bool {
 	re := cache.Regexp(regexString)
-	return (bool)(re.MatchString(subject)), nil
+	return re.MatchString(subject)
 }
-func evaluatorReplace(args ...interface{}) (interface{}, error) {
-	subject := args[0].(string)
-	refind := args[1].(string)
-	replace := args[2].(string)
-
+func evaluatorReplace(subject string, refind string, replace string) string {
 	re := cache.Regexp(refind)
-	return (string)(re.ReplaceAllString(subject, replace)), nil
+	return re.ReplaceAllString(subject, replace)
 }
-func evaluatorToTvgId(args ...interface{}) (interface{}, error) {
-	subject := args[0].(string)
+func evaluatorToTvgId(subject string) string {
 	re := cache.Regexp(`(?i)\b(SD|HD|FHD)\b`)
 
 	subject = re.ReplaceAllString(subject, "")
@@ -112,11 +100,10 @@ func evaluatorToTvgId(args ...interface{}) (interface{}, error) {
 	re = cache.Regexp(`[^a-zA-Z0-9]`)
 	tvgId := re.ReplaceAllString(subject, "")
 
-	return tvgId, nil
+	return tvgId
 }
 
-func evaluatorTitle(args ...interface{}) (interface{}, error) {
-	subject := args[0].(string)
+func evaluatorTitle(subject string) string {
 	re := cache.Regexp(`(?i)\b(SD|HD|FHD)\b`)
 
 	subject = re.ReplaceAllStringFunc(subject, func(s string) string {
@@ -124,5 +111,5 @@ func evaluatorTitle(args ...interface{}) (interface{}, error) {
 	})
 
 	subject = strings.Title(subject)
-	return strings.TrimSpace(subject), nil
+	return strings.TrimSpace(subject)
 }
