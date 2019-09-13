@@ -50,27 +50,27 @@ providers:
 ```
 
 ##### The meaning of the config options are as follows:
-- `core.server_listen`
+- `core.server_listen` (`string`)
 
     If set, this will run as a server, rather a single run. If you want single runs, you can omit this option. See the arguments to specify the output.
     Default: disabled
 
-- `core.update_schedule`
+- `core.update_schedule` (`string`)
 
     How often it should retrieve the latest channels. This is expressed in [cron syntax](https://github.com/mileusna/crontab#crontab-syntax-). It is highly recommended that you do not set this to a low interval. Set this to at least once every day.
     Default: `true`
 
-- `core.auto_reload_config`
+- `core.auto_reload_config` (`true|false`)
 
     Whether or not to reload the config before every run. Please note, this will not affect `core.server_listen` and `core.update_schedule`
     Default: `true`
 
-- `core.output`
+- `core.output` (`m3u|csv`)
 
     What to output. This can be either `csv` or `m3u`. CSV is useful for debugging and ensuring you've gone through all the channels, outside that, you generally want this to be `m3u`.
     Default: `m3u`
 
-- `core.group_order` (experimental)
+- `core.group_order` (`list` of `string`) (experimental)
 
     The order to put the categories in.
 
@@ -78,27 +78,32 @@ providers:
 
     This is a list of providers of where to retrieve M3U lists. This is an array (see example above).
 
-- `providers.url`
+- `providers.url` (`string`)
 
     The URL of where to retrieve the M3U list. This can start with `file://` to retrieve a list from a local file system (this must be an absolute path).
 
-- `providers.filters`
+- `providers.ignore_parse_errors` (`true|false`)
+
+    If true, this will ignore errors when trying to parse an individual channel. E.g. `tvg-id="Channel "1"` would not be possible to parse, and will be ignored without any errors.
+    Default: `false`
+
+- `providers.filters` (`list` of `string`)
 
     A list of filters to apply to channels. This must return true or false (no strings or anything else). If it returns true, it will include the channel in the final list.
     You can use the functions and variables below to specify your logic.
-    Default: `true` (meaning everything is included)
+    Default: `true` (meaning all channels are included)
 
 - `providers.setters`
 
     A list of things to set on channels based on the filter.
 
-- `providers.setters.name`
+- `providers.setters.name` (`string`)
 
     Set the name for this individual channel. This MUST return a string.
 
 - `providers.setters.attributes`
 
-    What to set any attribute too. This is go for setting logos where none exist, and/or enforcing `tvg-id` in case a channel does not have one but should. All attributes are listen below under the `Attr` variable. This again, must return a string, and has the functions and variables below available.
+    What to set any attribute too. This is go for setting logos where none exist, and/or enforcing `tvg-id` in case a channel does not have one but should. All attributes are listed below. This again, must return a string, and has the functions and variables below available.
 
     Example
     ```yaml
@@ -116,12 +121,15 @@ providers:
 - `strlen(text string) int`
 
     Will return the length of the string
+
 - `match(subject string, regexp string) bool`
 
     Will return `true` if the `subject` matches the regular expression
+
 - `replace(subject string, find_regexp string, replace string) string`
 
     Will look for the regular express `find_regexp` and replace with the value of `replace` and return that.
+
 - `tvg_id(text string)`
 
     Will try its best to turn text into a valid tvg-id attribute value. This does not include the usual country extension. The idea is that you pass the channel name into this, and it will spit out something that can be used as tvg-id.
@@ -131,12 +139,17 @@ providers:
     tvg_id("CCN HD") > cnn
     ```
 
-    The login behind this will be improved, but right now, all it does is simply remove SD/HD/FHD from the title and any character that isn't a-zA-Z0-9.
+    The login behind this will be improved, but right now, all it does is simply remove SD/HD/FHD from the title and any character that isn't `a-zA-Z0-9`.
+
+- `title(subject string) string`
+
+    Will turn the text in `subject` into a title, by capitalising all words, and also ensures all letters in SD/HD/FHD are capitalised.
 
 ##### Additionally, the following variables are available:
 
 |variable|content|
 |--------|-------|
+|`ChNo`|The channel number|
 |`Id`|The ID to sync up with XMLTV|
 |`Name`|This is the channel name|
 |`Uri`|The URL for the stream|
