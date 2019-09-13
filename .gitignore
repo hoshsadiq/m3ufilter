@@ -1,7 +1,7 @@
 #### Application specific
 /config.yaml
 /config.yml
-*.m3u
+/*.m3u
 
 
 # Created by .ignore support plugin (hsz.mobi)

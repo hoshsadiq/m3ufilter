@@ -1,0 +1,34 @@
+provider:
+  uri: string
+  ignore_parse_errors: false
+  filters: []
+  setters: []
+
+expected_error: "__no_error__"
+streams:
+  - duration: "-1"
+    name: "BBC One"
+    uri: "http://url.com/1"
+    tvg-id: "bbc1.uk"
+    tvg-name: "BBC One"
+    tvg-logo: "http://x.y/smt"
+    group-title: "Group"
+  - duration: "-1"
+    name: "Channel 4"
+    uri: "http://url.com/2"
+    tvg-id: "channel4.uk"
+    tvg-name: "Channel 4"
+    tvg-logo: "http://imgur.com/channel4.uk"
+    group-title: "Group2"
+  - duration: "-1"
+    name: "Channel 3"
+    uri: "http://url.com/3"
+    tvg-name: "Channel 3"
+    group-title: "Group4"
+  - duration: "-1"
+    name: "Channel 3"
+    uri: "http://url.com/4"
+  - duration: "-1"
+    name: "Overwrite tvg-name"
+    uri: "http://url.com/5"
+    tvg-name: "overwritten tvg-name"
