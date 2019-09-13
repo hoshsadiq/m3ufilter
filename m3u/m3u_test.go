@@ -1,8 +1,17 @@
 package m3u
 
 import (
+	"encoding/json"
+	"github.com/hoshsadiq/m3ufilter/config"
+	"github.com/hoshsadiq/m3ufilter/logger"
+	"github.com/sirupsen/logrus"
+	"gopkg.in/yaml.v2"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"reflect"
 	"sort"
+	"strings"
 	"testing"
 )
 
@@ -106,4 +115,69 @@ func TestExtinfLineParser(t *testing.T) {
 		}
 
 	}
+}
+
+func TestDecoder(t *testing.T) {
+	conf := &config.Config{
+		Core: &config.Core{
+			GroupOrder: []string{},
+		},
+	}
+
+	logger.Get().SetLevel(logrus.WarnLevel)
+
+	_ = filepath.Walk("testdata/testing", func(path string, info os.FileInfo, err error) error {
+		//var testData interface{}
+		var testData simpleTest
+
+		ext := filepath.Ext(path)
+		if !info.IsDir() && (ext == ".yaml" || ext == ".yml") {
+			yamlFile, err := ioutil.ReadFile(path)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			err = yaml.Unmarshal([]byte(yamlFile), &testData)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			m3ufile := strings.TrimSuffix(path, ext) + ".m3u"
+			f, err := os.Open(m3ufile)
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer f.Close()
+
+			streams, err := decode(conf, f, &testData.Provider)
+			if testData.ExpectedError != "__no_error__" && (err == nil || err.Error() != testData.ExpectedError) {
+				t.Errorf("Test %s failed. Expected err %s, but got %s", path, testData.ExpectedError, err)
+				return nil
+			}
+
+			if !reflect.DeepEqual(streams, testData.Streams) {
+				expectedStreams, err := json.Marshal(testData.Streams)
+				if err != nil {
+					panic(err)
+				}
+				actualStreams, err := json.Marshal(streams)
+				if err != nil {
+					panic(err)
+				}
+
+				t.Logf("Test %s failed.", path)
+				t.Logf("  Expected streans: %s", expectedStreams)
+				t.Logf("  Got:              %s", actualStreams)
+				t.Fail()
+			}
+		}
+
+		return nil
+	})
+}
+
+type simpleTest struct {
+	ExpectedError string `yaml:"expected_error"`
+	Streams       Streams
+	Provider      config.Provider
 }

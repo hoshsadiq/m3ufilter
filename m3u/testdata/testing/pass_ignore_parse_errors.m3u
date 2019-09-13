@@ -1,0 +1,9 @@
+#EXTM3U
+#EXTINF:-1,Channel 1
+http://url.com/1
+#EXTINF:-1 tvg-name="failing"item",title
+http://url.com/2
+#EXTINF:-1 tvg-id="overwr"itten",title
+http://url.com/3
+#EXTINF:-1,Channel 4
+http://url.com/4

@@ -23,9 +23,10 @@ type Core struct {
 }
 
 type Provider struct {
-	Uri     string
-	Filters []string
-	Setters []*Setter
+	Uri               string
+	IgnoreParseErrors bool `yaml:"ignore_parse_errors"`
+	Filters           []string
+	Setters           []*Setter
 }
 
 type Setter struct {

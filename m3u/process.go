@@ -35,7 +35,7 @@ func GetPlaylist(conf *config.Config) (streams Streams, allFailed bool) {
 			}
 		}()
 
-		pl, err := decode(bufio.NewReader(resp.Body), provider)
+		pl, err := decode(conf, bufio.NewReader(resp.Body), provider)
 		if err != nil {
 			errors++
 			log.Errorf("could not decode playlist from provider %s, err = %v", provider.Uri, err)

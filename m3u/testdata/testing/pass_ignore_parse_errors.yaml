@@ -1,0 +1,14 @@
+provider:
+  uri: string
+  ignore_parse_errors: true
+  filters: []
+  setters: []
+
+expected_error: "__no_error__"
+streams:
+  - duration: "-1"
+    name: "Channel 1"
+    uri: "http://url.com/1"
+  - duration: "-1"
+    name: "Channel 4"
+    uri: "http://url.com/4"
