@@ -16,5 +16,5 @@ func shouldIncludeSegment(segment *Stream, filters []string) bool {
 		}
 	}
 
-	return false
+	return len(filters) == 0
 }

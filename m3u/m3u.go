@@ -42,15 +42,15 @@ type Stream struct {
 	Uri      string
 
 	// these are attributes
-	ChNo    string
-	Id      string
-	TvgName string
-	Shift   string
-	Logo    string
-	Group   string
+	ChNo    string `yaml:"chno"`
+	Id      string `yaml:"tvg-id"`
+	TvgName string `yaml:"tvg-name"`
+	Shift   string `yaml:"tvg-shift"`
+	Logo    string `yaml:"tvg-logo"`
+	Group   string `yaml:"group-title"`
 }
 
-func decode(reader io.Reader, providerConfig *config.Provider) (Streams, error) {
+func decode(conf *config.Config, reader io.Reader, providerConfig *config.Provider) (Streams, error) {
 	buf := new(bytes.Buffer)
 	_, err := buf.ReadFrom(reader)
 	if err != nil {
@@ -58,7 +58,7 @@ func decode(reader io.Reader, providerConfig *config.Provider) (Streams, error) 
 		return nil, err
 	}
 
-	groupOrder = config.Get().GetGroupOrder()
+	groupOrder = conf.GetGroupOrder()
 
 	var eof bool
 	streams := Streams{}
@@ -84,6 +84,9 @@ func decode(reader io.Reader, providerConfig *config.Provider) (Streams, error) 
 		lines++
 		stream, err := parseExtinfLine(extinfLine, urlLine)
 		if err != nil {
+			if providerConfig.IgnoreParseErrors {
+				continue
+			}
 			return nil, err
 		}
 
