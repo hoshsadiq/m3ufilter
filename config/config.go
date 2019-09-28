@@ -6,10 +6,17 @@ import (
 	"log"
 )
 
+type EpgProvider struct {
+	Uri           string
+	RemoveUnknown bool `yaml:"remove_unknown"`
+	Pretty        bool
+}
+
 type Config struct {
 	filepath  string
 	Core      *Core
 	Providers []*Provider
+	Epg       []*EpgProvider
 }
 
 type Canonicalise struct {

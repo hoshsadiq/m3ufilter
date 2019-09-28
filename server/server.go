@@ -26,6 +26,7 @@ func Serve(appConfig *config.Config) {
 
 	log.Info("Starting server")
 	http.Handle("/playlist.m3u", httpHandler{conf, getPlaylist})
+	http.Handle("/epg.xml", httpHandler{conf, getEpg})
 	http.Handle("/update", httpHandler{conf, postUpdate})
 
 	server := &http.Server{Addr: appConfig.Core.ServerListen}

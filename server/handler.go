@@ -12,6 +12,7 @@ type httpConfig struct {
 	playlists *m3u.Streams
 	lock      bool
 	crontab   *crontab.Crontab
+	//Epg       []
 }
 
 type httpHandler struct {
