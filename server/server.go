@@ -19,9 +19,7 @@ func Serve(appConfig *config.Config) {
 	}
 
 	log.Info("Scheduling cronjob to periodically update playlist.")
-	conf.crontab.MustAddJob(appConfig.Core.UpdateSchedule, func() {
-		updatePlaylist(conf)
-	})
+	scheduleJob(conf, appConfig.Core.UpdateSchedule)
 
 	log.Info("Parsing for the first time...")
 	conf.crontab.RunAll()
@@ -32,4 +30,10 @@ func Serve(appConfig *config.Config) {
 
 	server := &http.Server{Addr: appConfig.Core.ServerListen}
 	log.Fatal(server.ListenAndServe())
+}
+
+func scheduleJob(conf *httpConfig, schedule string) {
+	conf.crontab.MustAddJob(schedule, func() {
+		updatePlaylist(conf)
+	})
 }

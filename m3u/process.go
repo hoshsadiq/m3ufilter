@@ -6,6 +6,7 @@ import (
 	"github.com/hoshsadiq/m3ufilter/config"
 	"github.com/hoshsadiq/m3ufilter/logger"
 	"net/http"
+	"net/url"
 	"sort"
 	"time"
 )
@@ -21,7 +22,14 @@ func GetPlaylist(conf *config.Config) (streams Streams, allFailed bool) {
 	// todo we can do each provider in its own coroutine, then converged at the end.
 	//   furthermore, each line can be done in its own coroutine as well.
 	for _, provider := range conf.Providers {
-		log.Infof("reading from provider %s", provider.Uri)
+		u, err := url.Parse(provider.Uri)
+		if err != nil {
+			errors++
+			log.Errorf("Could not parse URL for %s, err = %v", provider.Uri, err)
+			continue
+		}
+
+		log.Infof("reading from provider %s://%s", u.Scheme, u.Host)
 		resp, err := client.Get(provider.Uri)
 		if err != nil {
 			errors++
