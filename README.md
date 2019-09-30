@@ -57,8 +57,8 @@ providers:
 
 - `core.update_schedule` (`string`)
 
-    How often it should retrieve the latest channels. This is expressed in [cron syntax](https://github.com/mileusna/crontab#crontab-syntax-). It is highly recommended that you do not set this to a low interval. Set this to at least once every day.
-    Default: `true`
+    How often it should retrieve the latest channels. This is expressed in [cron syntax](https://github.com/mileusna/crontab#crontab-syntax-). It is highly recommended that you do not set this to a low interval. Set this to at least once every day. You can use the tool [crontab.guru](https://crontab.guru/) to figure out what interval you want.
+    Default: `* */24 * * *` (that is, once every 24 hours)
 
 - `core.auto_reload_config` (`true|false`)
 
