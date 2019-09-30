@@ -90,7 +90,7 @@ func decode(conf *config.Config, reader io.Reader, providerConfig *config.Provid
 			return nil, err
 		}
 
-		if !shouldIncludeSegment(stream, providerConfig.Filters) {
+		if !shouldIncludeStream(stream, providerConfig.Filters, providerConfig.CheckStreams) {
 			continue
 		}
 

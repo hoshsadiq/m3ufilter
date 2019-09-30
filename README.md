@@ -87,6 +87,11 @@ providers:
     If true, this will ignore errors when trying to parse an individual channel. E.g. `tvg-id="Channel "1"` would not be possible to parse, and will be ignored without any errors.
     Default: `false`
 
+- `providers.check_streams` (`true|false`)
+
+    If true, the stream URLs will be checked to see if they are alive before including them.
+    Default: `false`
+
 - `providers.filters` (`list` of `string`)
 
     A list of filters to apply to channels. This must return true or false (no strings or anything else). If it returns true, it will include the channel in the final list.

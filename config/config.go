@@ -25,6 +25,7 @@ type Core struct {
 type Provider struct {
 	Uri               string
 	IgnoreParseErrors bool `yaml:"ignore_parse_errors"`
+	CheckStreams      bool `yaml:"check_streams"`
 	Filters           []string
 	Setters           []*Setter
 }

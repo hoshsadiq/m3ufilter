@@ -15,7 +15,7 @@ func updatePlaylist(conf *httpConfig) {
 	}
 
 	conf.lock = true
-	log.Info("updating playlists")
+	log.Info("Updating playlists")
 	newPlaylists, allFailed := m3u.GetPlaylist(conf.appConfig)
 	if allFailed {
 		log.Info("Skipping updating playlist to server as all providers failed")
