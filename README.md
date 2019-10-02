@@ -57,8 +57,8 @@ providers:
 
 - `core.update_schedule` (`string`)
 
-    How often it should retrieve the latest channels. This is expressed in [cron syntax](https://github.com/mileusna/crontab#crontab-syntax-). It is highly recommended that you do not set this to a low interval. Set this to at least once every day.
-    Default: `true`
+    How often it should retrieve the latest channels. This is expressed in [cron syntax](https://github.com/mileusna/crontab#crontab-syntax-). It is highly recommended that you do not set this to a low interval. Set this to at least once every day. You can use the tool [crontab.guru](https://crontab.guru/) to figure out what interval you want.
+    Default: `* */24 * * *` (that is, once every 24 hours)
 
 - `core.auto_reload_config` (`true|false`)
 
@@ -85,6 +85,11 @@ providers:
 - `providers.ignore_parse_errors` (`true|false`)
 
     If true, this will ignore errors when trying to parse an individual channel. E.g. `tvg-id="Channel "1"` would not be possible to parse, and will be ignored without any errors.
+    Default: `false`
+
+- `providers.check_streams` (`true|false`)
+
+    If true, the stream URLs will be checked to see if they are alive before including them.
     Default: `false`
 
 - `providers.filters` (`list` of `string`)

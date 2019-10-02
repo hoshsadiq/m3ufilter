@@ -9,7 +9,7 @@ func setSegmentValues(ms *Stream, setters []*config.Setter) {
 	var err error
 
 	for _, setter := range setters {
-		if len(setter.Filters) == 0 || shouldIncludeSegment(ms, setter.Filters) {
+		if shouldIncludeStream(ms, setter.Filters, false) {
 			if setter.Name != "" {
 				newValue, err = evaluateStr(ms, setter.Name)
 				if err != nil {
