@@ -8,12 +8,7 @@ github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/dustin/go-humanize v1.0.0 h1:VSnTsYCnlFHaM2/igO1h6X3HA71jcobQuxemgkq4zYo=
 github.com/dustin/go-humanize v1.0.0/go.mod h1:HtrtbFcZ19U5GC7JDqmcUSB87Iq5E25KnS6fMYU6eOk=
-github.com/grafov/m3u8 v0.6.1 h1:RC2QCbV39L6xqWN05RrizRlQhBRmwOq08fOuB5/+Dp0=
-github.com/grafov/m3u8 v0.6.1/go.mod h1:PdjzaU/pJUo4jTIn2rcgMFs+HqBGl/sPJLr8BI0Xq/I=
-github.com/hoshsadiq/goval v1.0.1-0.20190525223338-f1ea9f026acd h1:tHcmy00GNwixuQJNhxkc+H26/2Wlra770XSz2Ck7jlQ=
 github.com/hoshsadiq/goval v1.0.1-0.20190525223338-f1ea9f026acd/go.mod h1:vH861Ggnz+sJfUC83x8FDGOKmaXih51ENtmYjJcSdhI=
-github.com/hoshsadiq/m3u8 v0.0.0-20190514185311-cb08e59df8fe h1:fz02Do8KLkao6Gaf5fqLYOI80LZY/uSi8WykCayREcQ=
-github.com/hoshsadiq/m3u8 v0.0.0-20190514185311-cb08e59df8fe/go.mod h1:PWg2xCsOwS3nNaA6IP8girOsxdzDHaDwM2LtByPK08o=
 github.com/konsorten/go-windows-terminal-sequences v1.0.1 h1:mweAR1A6xJ3oS2pRaGiHgQ4OO8tzTaLawm8vnODuwDk=
 github.com/konsorten/go-windows-terminal-sequences v1.0.1/go.mod h1:T0+1ngSBFLxvqU3pZ+m/2kptfBszLMUkC4ZK/EgS/cQ=
 github.com/kr/pretty v0.1.0 h1:L/CwN0zerZDmRFUapSPitk6f+Q3+0za1rQkzVuMiMFI=
