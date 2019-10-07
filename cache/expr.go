@@ -1,16 +1,19 @@
 package cache
 
 import (
-	nocomment "github.com/maja42/no-comment"
+	"github.com/hoshsadiq/govaluate"
 )
 
-var exprCache = make(map[string]*string)
+var exprCache = make(map[string]*govaluate.EvaluableExpression)
 
-func Expr(expr string) string {
+func Expr(expr string, functions map[string]govaluate.ExpressionFunction) (*govaluate.EvaluableExpression, error) {
 	if exprCache[expr] == nil {
-		uncommented := nocomment.StripCStyleComments(expr)
-		exprCache[expr] = &uncommented
+		evaluableExpression, err := govaluate.NewEvaluableExpressionWithFunctions(expr, functions)
+		if err != nil {
+			return nil, err
+		}
+		exprCache[expr] = evaluableExpression
 	}
 
-	return *exprCache[expr]
+	return exprCache[expr], nil
 }

@@ -3,12 +3,10 @@ package m3u
 import (
 	"errors"
 	"fmt"
+	"github.com/hoshsadiq/govaluate"
 	"github.com/hoshsadiq/m3ufilter/cache"
-	"github.com/maja42/goval"
 	"strings"
 )
-
-var evaluator = goval.NewEvaluator()
 
 func evaluate(ms *Stream, expr string) (result interface{}, err error) {
 	if expr[0] == '=' {
@@ -31,10 +29,13 @@ func evaluate(ms *Stream, expr string) (result interface{}, err error) {
 		"Group":    ms.Group,
 	}
 
-	expr = cache.Expr(expr)
+	evaluableExpr, err := cache.Expr(expr, getEvaluatorFunctions())
+	if err != nil {
+		return nil, err
+	}
 
 	//fmt.Printf("Evaluating `%s` using vars %v\n", expr, variables)
-	res, err := evaluator.Evaluate(expr, variables, getEvaluatorFunctions())
+	res, err := evaluableExpr.Evaluate(variables)
 	if debug {
 		log.Infof("Debugging expr %s, res = %s, vars = %v", expr, res, variables)
 	}
@@ -70,8 +71,8 @@ func evaluateStr(ms *Stream, expr string) (result string, err error) {
 	}
 }
 
-func getEvaluatorFunctions() map[string]goval.ExpressionFunction {
-	return map[string]goval.ExpressionFunction{
+func getEvaluatorFunctions() map[string]govaluate.ExpressionFunction {
+	return map[string]govaluate.ExpressionFunction{
 		"strlen":  evaluatorStrlen,
 		"match":   evaluatorMatch,
 		"replace": evaluatorReplace,
