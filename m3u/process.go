@@ -29,7 +29,12 @@ func GetPlaylist(conf *config.Config) (streams Streams, allFailed bool) {
 			continue
 		}
 
-		log.Infof("reading from provider %s://%s", u.Scheme, u.Host)
+		if u.Scheme == "file" {
+			log.Infof("reading from provider %s", u)
+		} else {
+			log.Infof("reading from provider %s://%s", u.Scheme, u.Host)
+		}
+
 		resp, err := client.Get(provider.Uri)
 		if err != nil {
 			errors++

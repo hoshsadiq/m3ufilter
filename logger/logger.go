@@ -8,18 +8,18 @@ import (
 )
 
 var logger *logrus.Logger
-var callerinfo = getPackage() + "/"
+var basePkg = getPackage()
 
 func Get() *logrus.Logger {
 	if logger == nil {
 		logger = logrus.New()
 
 		logger.SetFormatter(&logrus.TextFormatter{
-			DisableColors: true,
 			FullTimestamp: true,
 			CallerPrettyfier: func(f *runtime.Frame) (string, string) {
-				repopath := strings.Split(f.File, callerinfo)[1]
-				return fmt.Sprintf("%s()", f.Function), fmt.Sprintf("%s:%d", repopath, f.Line)
+				repopath := strings.Split(f.File, basePkg+"/")[1]
+				fnc := strings.Split(f.Function, basePkg+"/")[1]
+				return fmt.Sprintf("%s()", fnc), fmt.Sprintf("%s:%d", repopath, f.Line)
 			},
 		})
 
