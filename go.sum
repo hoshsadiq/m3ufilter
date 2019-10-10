@@ -10,6 +10,8 @@ github.com/dustin/go-humanize v1.0.0 h1:VSnTsYCnlFHaM2/igO1h6X3HA71jcobQuxemgkq4
 github.com/dustin/go-humanize v1.0.0/go.mod h1:HtrtbFcZ19U5GC7JDqmcUSB87Iq5E25KnS6fMYU6eOk=
 github.com/hoshsadiq/govaluate v0.0.0-20191003192105-930de62315ca h1:5u9ue0lzwIWsH5d9zj8IjuIEBHNFOumehKt0EHReETI=
 github.com/hoshsadiq/govaluate v0.0.0-20191003192105-930de62315ca/go.mod h1:p+bguefzUhD0/FKVwmIlH31yJ/AHi1sPGJ6dIAoqmkE=
+github.com/hoshsadiq/govaluate v3.0.0+incompatible h1:Q73y2EKkQmUaEVrWpLVR2oCQX0x5eSPKQKb/H59gsAo=
+github.com/hoshsadiq/govaluate v3.0.0+incompatible/go.mod h1:nzBwIDLmtz29kXBipgEmfXFnsxYWShMQqUPmQFRzq7s=
 github.com/konsorten/go-windows-terminal-sequences v1.0.1 h1:mweAR1A6xJ3oS2pRaGiHgQ4OO8tzTaLawm8vnODuwDk=
 github.com/konsorten/go-windows-terminal-sequences v1.0.1/go.mod h1:T0+1ngSBFLxvqU3pZ+m/2kptfBszLMUkC4ZK/EgS/cQ=
 github.com/kr/pretty v0.1.0 h1:L/CwN0zerZDmRFUapSPitk6f+Q3+0za1rQkzVuMiMFI=

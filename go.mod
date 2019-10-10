@@ -5,7 +5,7 @@ require (
 	github.com/aybabtme/iocontrol v0.0.0-20150809002002-ad15bcfc95a0 // indirect
 	github.com/benbjohnson/clock v0.0.0-20161215174838-7dc76406b6d3 // indirect
 	github.com/dustin/go-humanize v1.0.0 // indirect
-	github.com/hoshsadiq/govaluate v0.0.0-20191003192105-930de62315ca
+	github.com/hoshsadiq/govaluate v3.0.0+incompatible
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/mileusna/crontab v0.0.0-20180909013013-f182897de5d8
 	github.com/mitchellh/go-homedir v1.1.0
