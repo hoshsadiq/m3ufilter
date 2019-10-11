@@ -15,7 +15,6 @@ func Expr(expression string, envArg interface{}) (*vm.Program, error) {
 		return x.(*vm.Program), nil
 	}
 
-
 	program, err := expr.Compile(expression, expr.Env(envArg))
 	if err != nil {
 		return nil, err

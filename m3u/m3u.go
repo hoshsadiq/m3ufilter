@@ -102,9 +102,9 @@ func decode(conf *config.Config, reader io.Reader, providerConfig *config.Provid
 				return
 			}
 
-		if !shouldIncludeStream(stream, providerConfig.Filters, providerConfig.CheckStreams) {
-			return
-		}
+			if stream == nil || !shouldIncludeStream(stream, providerConfig.Filters, providerConfig.CheckStreams) {
+				return
+			}
 
 			setSegmentValues(stream, providerConfig.Setters)
 

@@ -41,7 +41,6 @@ func evaluate(ms *Stream, expression string) (result interface{}, err error) {
 		return
 	}
 
-
 	//fmt.Printf("Evaluating `%s` using vars %v\n", expr, variables)
 	//res, err := evaluator.Evaluate(expr, variables, getEvaluatorFunctions())
 	log.Debugf("Debugging expr %s, res = %s, vars = %v", expression, output, variables)

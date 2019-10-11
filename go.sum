@@ -3,8 +3,8 @@ github.com/PuerkitoBio/rehttp v1.0.0 h1:aJ7A7YI2lIvOxcJVeUZY4P6R7kKZtLeONjgyKGwO
 github.com/PuerkitoBio/rehttp v1.0.0/go.mod h1:ItsOiHl4XeMOV3rzbZqQRjLc3QQxbE6391/9iNG7rE8=
 github.com/antlr/antlr4 v0.0.0-20190518164840-edae2a1c9b4b h1:DMF+0kF2BwcKeoR85uLg11d7ldxYZzl5yzzVM0R8JXE=
 github.com/antlr/antlr4 v0.0.0-20190518164840-edae2a1c9b4b/go.mod h1:T7PbCXFs94rrTttyxjbyT5+/1V8T2TYDejxUfHJjw1Y=
-github.com/antonmedv/expr v0.0.0-20190828073954-2acac392c0b7 h1:Z/Gxjv6q8dKunSPDhIGfqPe2wvMKRizL4L5p9xgV7IM=
-github.com/antonmedv/expr v0.0.0-20190828073954-2acac392c0b7/go.mod h1:UVdIWDgu0PlfPsjLBrjszJptS9Et9jK1aXR/9JE+LBQ=
+github.com/antonmedv/expr v0.0.0-20190926190031-4d40254bf70e h1:Z57RoSL34yU7akGPVtCGcuJc4Ta5oaJxNUsE9xMIH9k=
+github.com/antonmedv/expr v0.0.0-20190926190031-4d40254bf70e/go.mod h1:UVdIWDgu0PlfPsjLBrjszJptS9Et9jK1aXR/9JE+LBQ=
 github.com/aybabtme/iocontrol v0.0.0-20150809002002-ad15bcfc95a0 h1:0NmehRCgyk5rljDQLKUO+cRJCnduDyn11+zGZIc9Z48=
 github.com/aybabtme/iocontrol v0.0.0-20150809002002-ad15bcfc95a0/go.mod h1:6L7zgvqo0idzI7IO8de6ZC051AfXb5ipkIJ7bIA2tGA=
 github.com/benbjohnson/clock v0.0.0-20161215174838-7dc76406b6d3 h1:wOysYcIdqv3WnvwqFFzrYCFALPED7qkUGaLXu359GSc=

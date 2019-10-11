@@ -2,7 +2,7 @@ module github.com/hoshsadiq/m3ufilter
 
 require (
 	github.com/PuerkitoBio/rehttp v1.0.0
-	github.com/antonmedv/expr v0.0.0-20190828073954-2acac392c0b7
+	github.com/antonmedv/expr v0.0.0-20190926190031-4d40254bf70e
 	github.com/aybabtme/iocontrol v0.0.0-20150809002002-ad15bcfc95a0 // indirect
 	github.com/benbjohnson/clock v0.0.0-20161215174838-7dc76406b6d3 // indirect
 	github.com/dustin/go-humanize v1.0.0 // indirect
