@@ -47,7 +47,7 @@ func setSegmentValues(ms *Stream, setters []*config.Setter) {
 					log.Errorln(err)
 				}
 				if newValue != ms.Shift {
-					log.Tracef("id %s replaced with %s; expr = %v", ms.Shift, newValue, setter.Attributes.Shift)
+					log.Tracef("shift %s replaced with %s; expr = %v", ms.Shift, newValue, setter.Attributes.Shift)
 				}
 
 				ms.Shift = newValue
@@ -59,7 +59,7 @@ func setSegmentValues(ms *Stream, setters []*config.Setter) {
 					log.Errorln(err)
 				}
 				if newValue != ms.Logo {
-					log.Tracef("title %s replaced with %s; expr = %v", ms.Logo, newValue, setter.Attributes.Logo)
+					log.Tracef("logo %s replaced with %s; expr = %v", ms.Logo, newValue, setter.Attributes.Logo)
 				}
 
 				ms.Logo = newValue
@@ -71,7 +71,7 @@ func setSegmentValues(ms *Stream, setters []*config.Setter) {
 					log.Errorln(err)
 				}
 				if newValue != ms.Group {
-					log.Tracef("title %s replaced with %s; expr = %v", ms.Group, newValue, setter.Attributes.Group)
+					log.Tracef("group %s replaced with %s; expr = %v", ms.Group, newValue, setter.Attributes.Group)
 				}
 
 				ms.Group = newValue
@@ -83,7 +83,7 @@ func setSegmentValues(ms *Stream, setters []*config.Setter) {
 					log.Errorln(err)
 				}
 				if newValue != ms.ChNo {
-					log.Tracef("title %s replaced with %s; expr = %v", ms.ChNo, newValue, setter.Attributes.ChNo)
+					log.Tracef("chno %s replaced with %s; expr = %v", ms.ChNo, newValue, setter.Attributes.ChNo)
 				}
 
 				ms.ChNo = newValue
