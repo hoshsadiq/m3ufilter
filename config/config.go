@@ -12,12 +12,18 @@ type Config struct {
 	Providers []*Provider
 }
 
+type Canonicalise struct {
+	Enable      bool
+	MainCountry string `yaml:"main_country"`
+}
+
 type Core struct {
 	ServerListen     string `yaml:"server_listen"`
 	AutoReloadConfig bool   `yaml:"auto_reload_config"`
 	Output           string
-	UpdateSchedule   string   `yaml:"update_schedule"`
-	GroupOrder       []string `yaml:"group_order"`
+	UpdateSchedule   string       `yaml:"update_schedule"`
+	Canonicalise     Canonicalise `yaml:"canonicalise"`
+	GroupOrder       []string     `yaml:"group_order"`
 
 	groupOrderMap map[string]int
 }
@@ -63,6 +69,10 @@ func New(filepath string) *Config {
 			AutoReloadConfig: true,
 			UpdateSchedule:   "* */24 * * *",
 			Output:           "m3u",
+			Canonicalise: Canonicalise{
+				Enable:      true,
+				MainCountry: "uk",
+			},
 		},
 	}
 

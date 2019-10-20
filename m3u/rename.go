@@ -2,11 +2,18 @@ package m3u
 
 import (
 	"github.com/hoshsadiq/m3ufilter/config"
+	"regexp"
+	"strings"
 )
 
 func setSegmentValues(ms *Stream, setters []*config.Setter) {
 	var newValue string
 	var err error
+
+	ms.meta.country = findCountry(ms)
+	ms.meta.definition = findDefinition(ms)
+	ms.meta.canonicalName = canonicaliseName(ms.Name)
+	ms.meta.originalName = ms.Name
 
 	for _, setter := range setters {
 		if shouldIncludeStream(ms, setter.Filters, false) {
@@ -83,4 +90,49 @@ func setSegmentValues(ms *Stream, setters []*config.Setter) {
 			}
 		}
 	}
+}
+
+func findCountry(stream *Stream) string {
+	if stream.Id != "" && strings.Count(stream.Id, ".") == 1 {
+		return strings.ToUpper(strings.Split(stream.Id, ".")[1])
+	}
+
+	regex := `(?i)\b(` + countryReplaces + `)\b`
+	r := regexp.MustCompile(regex)
+	matches := r.FindStringSubmatch(stream.Name)
+	if matches != nil {
+		country := strings.ToUpper(matches[0])
+
+		if val, ok := countryOverrides[country]; ok {
+			country = val
+		}
+
+		return country
+	}
+
+	return ""
+}
+
+func findDefinition(stream *Stream) string {
+	regex := `(?i)\b(` + definitionReplaces + `)\b`
+	r := regexp.MustCompile(regex)
+	matches := r.FindStringSubmatch(stream.Name)
+	if matches != nil {
+		return strings.ToUpper(matches[0])
+	}
+
+	return ""
+}
+
+func canonicaliseName(name string) string {
+	name = regexWordCallback(name, countryReplaces, removeWord)
+	name = regexWordCallback(name, "TV|Channel", removeWord)
+	name = regexWordCallback(name, definitionReplaces, removeWord)
+
+	name = strings.Replace(name, ":", "", -1)
+	name = strings.Replace(name, "|", "", -1)
+
+	name = strings.Title(name)
+	name = strings.ToLower(name)
+	return strings.TrimSpace(name)
 }

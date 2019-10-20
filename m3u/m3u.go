@@ -31,11 +31,24 @@ func (s Streams) Less(i, j int) bool {
 		return false
 	}
 
+	if iOrder == jOrder {
+		return strings.Compare(s[i].meta.canonicalName, s[j].meta.canonicalName) < 0
+	}
+
 	return iOrder < jOrder
 }
 
 func (s Streams) Swap(i, j int) {
 	s[i], s[j] = s[j], s[i]
+}
+
+type streamMeta struct {
+	definition     string
+	country        string
+	canonicalName  string
+	originalName   string
+	showCountry    bool
+	showDefinition bool
 }
 
 func GetMD5Hash(text string) string {
@@ -57,6 +70,20 @@ type Stream struct {
 	Shift   string `yaml:"tvg-shift"`
 	Logo    string `yaml:"tvg-logo"`
 	Group   string `yaml:"group-title"`
+
+	meta streamMeta
+}
+
+func (s Stream) GetName() string {
+	name := s.Name
+	if s.meta.showCountry {
+		name += " " + s.meta.country
+	}
+	if s.meta.showDefinition {
+		name += " " + s.meta.definition
+	}
+
+	return name
 }
 
 func decode(conf *config.Config, reader io.Reader, providerConfig *config.Provider) (Streams, error) {

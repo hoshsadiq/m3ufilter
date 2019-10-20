@@ -34,7 +34,7 @@ func getStreamExtinf(stream *m3u.Stream) []byte {
 
 	writeKV(b, "CUID", stream.CUID)
 	writeKV(b, "tvg-id", stream.Id)
-	writeKV(b, "tvg-name", stream.Name)
+	writeKV(b, "tvg-name", stream.GetName())
 	writeKV(b, "group-title", stream.Group)
 	writeKV(b, "tvg-logo", stream.Logo)
 
@@ -43,7 +43,7 @@ func getStreamExtinf(stream *m3u.Stream) []byte {
 	}
 
 	b.WriteRune(',')
-	b.WriteString(stream.Name)
+	b.WriteString(stream.GetName())
 	b.WriteString("\n")
 	b.WriteString(stream.Uri)
 

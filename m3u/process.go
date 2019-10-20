@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"sort"
+	"strings"
 	"time"
 )
 
@@ -60,7 +61,40 @@ func GetPlaylist(conf *config.Config) (streams Streams, allFailed bool) {
 
 	sort.Sort(streams)
 
+	if conf.Core.Canonicalise.Enable {
+		streamsLength := len(streams)
+		var nextStream *Stream
+		for i, stream := range streams {
+			if i+1 >= streamsLength {
+				continue
+			}
+
+			nextStream = streams[i+1]
+			setOutputMarkers(conf.Core.Canonicalise.MainCountry, stream, nextStream)
+		}
+	}
+
 	return streams, len(conf.Providers) == errors
+}
+
+func setOutputMarkers(mainCountry string, left *Stream, right *Stream) {
+	if left.meta.canonicalName != right.meta.canonicalName {
+		return
+	}
+
+	if left.meta.country != right.meta.country {
+		mainCountry = strings.ToUpper(mainCountry)
+		if left.meta.country == "" || left.meta.country != mainCountry {
+			left.meta.showCountry = true
+		}
+
+		if right.meta.country == "" || right.meta.country != mainCountry {
+			right.meta.showCountry = true
+		}
+	} else {
+		left.meta.showDefinition = left.meta.definition != right.meta.definition
+		right.meta.showDefinition = left.meta.showDefinition
+	}
 }
 
 func NewClient(MaxRetryAttempts int) *http.Client {

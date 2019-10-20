@@ -10,15 +10,26 @@ import (
 
 var evaluator = goval.NewEvaluator()
 
-func evaluate(ms *Stream, expr string) (result interface{}, err error) {
-	if expr[0] == '=' {
-		return strings.TrimSpace(expr[1:]), nil
-	}
+// todo plenty of options are missing here
+const countryReplaces = `UK|GB|CA|CAN|USA|US|NL|BRA|BR|PT|LAT|RO|PL|PK|IN|FR|AU|AF|ARB|IT|DE|PH|IRE`
 
-	debug := false
+var countryOverrides = map[string]string{
+	"GB":  "UK",
+	"CAN": "UK",
+	"USA": "US",
+}
+
+var definitionReplaces = `SD|HD|FHD`
+
+func evaluate(ms *Stream, expr string) (result interface{}, err error) {
+	var debug bool
 	if expr[0] == '?' {
 		debug = true
 		expr = strings.TrimSpace(expr[1:])
+	}
+
+	if expr[0] == '=' {
+		return strings.TrimSpace(expr[1:]), nil
 	}
 
 	variables := map[string]interface{}{
@@ -72,11 +83,12 @@ func evaluateStr(ms *Stream, expr string) (result string, err error) {
 
 func getEvaluatorFunctions() map[string]goval.ExpressionFunction {
 	return map[string]goval.ExpressionFunction{
-		"strlen":  evaluatorStrlen,
-		"match":   evaluatorMatch,
-		"replace": evaluatorReplace,
-		"tvg_id":  evaluatorToTvgId,
-		"title":   evaluatorTitle,
+		"strlen":      evaluatorStrlen,
+		"match":       evaluatorMatch,
+		"replace":     evaluatorReplace,
+		"tvg_id":      evaluatorToTvgId,
+		"title":       evaluatorTitle,
+		"upper_words": evaluatorUpperWord,
 	}
 }
 
@@ -116,13 +128,37 @@ func evaluatorToTvgId(args ...interface{}) (interface{}, error) {
 }
 
 func evaluatorTitle(args ...interface{}) (interface{}, error) {
-	subject := args[0].(string)
-	re := cache.Regexp(`(?i)\b(SD|HD|FHD)\b`)
+	subject := strings.ToLower(args[0].(string))
 
-	subject = re.ReplaceAllStringFunc(subject, func(s string) string {
-		return strings.ToUpper(s)
-	})
+	subject = regexWordCallback(subject, definitionReplaces, removeWord)
+	subject = regexWordCallback(subject, countryReplaces, removeWord)
 
 	subject = strings.Title(subject)
 	return strings.TrimSpace(subject), nil
+}
+
+func evaluatorUpperWord(args ...interface{}) (interface{}, error) {
+	subject := args[0].(string)
+
+	sargs := make([]string, len(args))
+	for i := range args {
+		sargs[i] = args[i].(string)
+	}
+
+	subject = regexWordCallback(subject, strings.Join(sargs[1:], "|"), strings.ToUpper)
+	return strings.TrimSpace(subject), nil
+}
+
+func regexWordCallback(subject string, word string, callback func(string) string) string {
+	re := cache.Regexp(`(?i)\b(` + word + `)\b`)
+
+	subject = re.ReplaceAllStringFunc(subject, func(s string) string {
+		return callback(s)
+	})
+
+	return subject
+}
+
+func removeWord(s string) string {
+	return ""
 }
