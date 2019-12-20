@@ -14,6 +14,7 @@ func setSegmentValues(ms *Stream, setters []*config.Setter) {
 	ms.meta.definition = findDefinition(ms)
 	ms.meta.canonicalName = canonicaliseName(ms.Name)
 	ms.meta.originalName = ms.Name
+	ms.meta.originalId = ms.Id
 
 	for _, setter := range setters {
 		if shouldIncludeStream(ms, setter.Filters, false) {

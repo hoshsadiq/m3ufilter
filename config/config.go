@@ -13,15 +13,15 @@ type EpgProvider struct {
 }
 
 type Config struct {
-	filepath  string
-	Core      *Core
-	Providers []*Provider
-	Epg       []*EpgProvider
+	filepath     string
+	Core         *Core
+	Providers    []*Provider
+	EpgProviders []*EpgProvider `yaml:"epg_providers"`
 }
 
 type Canonicalise struct {
-	Enable      bool
-	MainCountry string `yaml:"main_country"`
+	Enable         bool
+	DefaultCountry string `yaml:"default_country"`
 }
 
 type Core struct {
@@ -77,8 +77,8 @@ func New(filepath string) *Config {
 			UpdateSchedule:   "* */24 * * *",
 			Output:           "m3u",
 			Canonicalise: Canonicalise{
-				Enable:      true,
-				MainCountry: "uk",
+				Enable:         true,
+				DefaultCountry: "uk",
 			},
 		},
 	}

@@ -43,10 +43,14 @@ func (s Streams) Swap(i, j int) {
 }
 
 type streamMeta struct {
+	originalName   string
+	originalId     string
+
+	canonicalName  string
+
 	definition     string
 	country        string
-	canonicalName  string
-	originalName   string
+
 	showCountry    bool
 	showDefinition bool
 }
@@ -96,15 +100,15 @@ func decode(conf *config.Config, reader io.Reader, providerConfig *config.Provid
 
 	groupOrder = conf.GetGroupOrder()
 
+	var extinfLine string
+	var urlLine string
 	var eof bool
 	streams := Streams{}
 
 	lines := 0
 	start := time.Now()
 	for !eof {
-		var extinfLine string
-		var urlLine string
-
+		// todo we need to support additional tags - https://github.com/kodi-pvr/pvr.iptvsimple#supported-m3u-and-xmltv-elements
 		for !eof && !strings.HasPrefix(extinfLine, "#EXTINF:") {
 			extinfLine, eof = getLine(buf)
 		}
@@ -134,7 +138,7 @@ func decode(conf *config.Config, reader io.Reader, providerConfig *config.Provid
 
 		streams = append(streams, stream)
 	}
-	end := time.Since(start).Truncate(time.Duration(time.Millisecond))
+	end := time.Since(start).Truncate(time.Millisecond)
 
 	log.Infof("Matched %d valid streams out of %d. Took %s", len(streams), lines, end)
 
@@ -150,7 +154,7 @@ func getLine(buf *bytes.Buffer) (string, bool) {
 		if err == io.EOF {
 			eof = true
 		} else if err != nil {
-			panic("something went wrong")
+			log.Fatalf("unknown error: %v", err)
 		}
 
 		if len(line) < 1 || line == "\r" {
@@ -161,8 +165,8 @@ func getLine(buf *bytes.Buffer) (string, bool) {
 	return line, eof
 }
 
-func parseExtinfLine(attrline string, urlLine string) (*Stream, error) {
-	attrline = strings.TrimSpace(attrline)
+func parseExtinfLine(attrLine string, urlLine string) (*Stream, error) {
+	attrLine = strings.TrimSpace(attrLine)
 	urlLine = strings.TrimSpace(urlLine)
 
 	stream := &Stream{Uri: urlLine}
@@ -173,7 +177,7 @@ func parseExtinfLine(attrline string, urlLine string) (*Stream, error) {
 	value := ""
 	quote := "\""
 	escapeNext := false
-	for i, c := range attrline {
+	for i, c := range attrLine {
 		if i < 8 {
 			continue
 		}
@@ -227,7 +231,7 @@ func parseExtinfLine(attrline string, urlLine string) (*Stream, error) {
 
 		if c == '"' || c == '\'' {
 			if state != "value" {
-				return nil, errors.New(fmt.Sprintf("Unexpected character '%s' found, expected '=' for key %s on position %d in line: %s", string(c), key, i, attrline))
+				return nil, errors.New(fmt.Sprintf("Unexpected character '%s' found, expected '=' for key %s on position %d in line: %s", string(c), key, i, attrLine))
 			}
 			state = "quotes"
 			quote = string(c)
@@ -265,11 +269,11 @@ func parseExtinfLine(attrline string, urlLine string) (*Stream, error) {
 	}
 
 	if state == "keyname" && value == "" {
-		return nil, errors.New(fmt.Sprintf("Key %s started but no value assigned on line: %s", key, attrline))
+		return nil, errors.New(fmt.Sprintf("Key %s started but no value assigned on line: %s", key, attrLine))
 	}
 
 	if state == "quotes" {
-		return nil, errors.New(fmt.Sprintf("Unclosed quote on line: %s", attrline))
+		return nil, errors.New(fmt.Sprintf("Unclosed quote on line: %s", attrLine))
 	}
 
 	stream.Name = strings.TrimSpace(stream.Name)
