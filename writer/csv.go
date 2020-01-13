@@ -9,7 +9,6 @@ import (
 var csvHeaders = []string{
 	"tvg-id",
 	"group-title",
-	"group-title",
 	"tvg-name",
 	"duration",
 	"tvg-logo",
