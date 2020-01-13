@@ -1,12 +1,12 @@
 package writer
 
 import (
+	"crypto/md5"
+	"encoding/hex"
 	"github.com/hoshsadiq/m3ufilter/m3u"
 	"io"
 	"strconv"
 	"strings"
-	"crypto/md5"
-	"encoding/hex"
 )
 
 func writeM3U(w io.Writer, streams []*m3u.Stream) {
@@ -25,9 +25,9 @@ func writeM3U(w io.Writer, streams []*m3u.Stream) {
 }
 
 func GetMD5Hash(text string) string {
-    hasher := md5.New()
-    hasher.Write([]byte(text))
-    return hex.EncodeToString(hasher.Sum(nil))
+	hasher := md5.New()
+	hasher.Write([]byte(text))
+	return hex.EncodeToString(hasher.Sum(nil))
 }
 
 func getStreamExtinf(stream *m3u.Stream) []byte {
