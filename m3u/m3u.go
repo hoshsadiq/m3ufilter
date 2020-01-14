@@ -48,7 +48,7 @@ type Stream struct {
 	Duration string
 	Name     string
 	Uri      string
-	CUID     string
+	CUID     string `yaml:"CUID"`
 
 	// these are attributes
 	ChNo    string `yaml:"chno"`
