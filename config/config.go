@@ -31,17 +31,17 @@ type Provider struct {
 }
 
 type Attributes struct {
-	ChNo    string `yaml:"chno"`
-	Id      string `yaml:"tvg-id"`
-	Logo    string `yaml:"tvg-logo"`
-	Group   string `yaml:"group-title"`
-	Shift   string `yaml:"tvg-shift"`
+	ChNo  string `yaml:"chno"`
+	Id    string `yaml:"tvg-id"`
+	Logo  string `yaml:"tvg-logo"`
+	Group string `yaml:"group-title"`
+	Shift string `yaml:"tvg-shift"`
 }
 
 type Setter struct {
-	Name    string
+	Name       string
 	Attributes Attributes
-	Filters []string
+	Filters    []string
 }
 
 type Replacement struct {
