@@ -160,7 +160,7 @@ func parseExtinfLine(attrline string, urlLine string) (*Stream, error) {
 			if string(c) != quote {
 				value += string(c)
 			} else {
-				switch key {
+				switch strings.ToLower(key) {
 				case "tvg-chno":
 					stream.ChNo = value
 				case "tvg-id":
