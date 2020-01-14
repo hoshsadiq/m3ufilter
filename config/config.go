@@ -30,13 +30,17 @@ type Provider struct {
 	Setters           []*Setter
 }
 
-type Setter struct {
+type Attributes struct {
 	ChNo    string `yaml:"chno"`
-	Id      string
+	Id      string `yaml:"tvg-id"`
+	Logo    string `yaml:"tvg-logo"`
+	Group   string `yaml:"group-title"`
+	Shift   string `yaml:"tvg-shift"`
+}
+
+type Setter struct {
 	Name    string
-	Logo    string
-	Group   string
-	Shift   string
+	Attributes Attributes
 	Filters []string
 }
 
