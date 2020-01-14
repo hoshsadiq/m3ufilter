@@ -7,6 +7,7 @@ import (
 )
 
 var csvHeaders = []string{
+	"cuid",
 	"tvg-id",
 	"group-title",
 	"tvg-name",
@@ -31,6 +32,7 @@ func writeCsv(w io.Writer, streams []*m3u.Stream) {
 
 func printPlaylist(pl *m3u.Stream, w *csv.Writer) {
 	row := []string{
+		pl.CUID,
 		pl.Id,
 		pl.Group,
 		pl.Name,

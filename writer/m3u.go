@@ -1,8 +1,6 @@
 package writer
 
 import (
-	"crypto/md5"
-	"encoding/hex"
 	"github.com/hoshsadiq/m3ufilter/m3u"
 	"io"
 	"strconv"
@@ -24,12 +22,6 @@ func writeM3U(w io.Writer, streams []*m3u.Stream) {
 	}
 }
 
-func GetMD5Hash(text string) string {
-	hasher := md5.New()
-	hasher.Write([]byte(text))
-	return hex.EncodeToString(hasher.Sum(nil))
-}
-
 func getStreamExtinf(stream *m3u.Stream) []byte {
 	b := &strings.Builder{}
 	b.WriteString("\n")
@@ -40,7 +32,7 @@ func getStreamExtinf(stream *m3u.Stream) []byte {
 		writeKV(b, "tvg-chno", stream.ChNo)
 	}
 
-	writeKV(b, "CUID", GetMD5Hash(stream.Uri))
+	writeKV(b, "CUID", stream.CUID)
 	writeKV(b, "tvg-id", stream.Id)
 	writeKV(b, "tvg-name", stream.Name)
 	writeKV(b, "group-title", stream.Group)
