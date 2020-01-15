@@ -9,6 +9,8 @@ streams:
   - duration: "-1"
     name: "Channel 1"
     uri: "http://url.com/1"
+    CUID: "2e1699d5ade5f15c662e5a564806192a"
   - duration: "-1"
     name: "Channel 4"
     uri: "http://url.com/4"
+    CUID: "7be088d9a84e1bbd45e9733c1573b687"

@@ -22,61 +22,61 @@ func setSegmentValues(ms *Stream, setters []*config.Setter) {
 				ms.Name = newValue
 			}
 
-			if setter.Id != "" {
-				newValue, err = evaluateStr(ms, setter.Id)
+			if setter.Attributes.Id != "" {
+				newValue, err = evaluateStr(ms, setter.Attributes.Id)
 				if err != nil {
 					log.Errorln(err)
 				}
 				if newValue != ms.Id {
-					log.Tracef("id %s replaced with %s; expr = %v", ms.Id, newValue, setter.Id)
+					log.Tracef("id %s replaced with %s; expr = %v", ms.Id, newValue, setter.Attributes.Id)
 				}
 
 				ms.Id = newValue
 			}
 
-			if setter.Shift != "" {
-				newValue, err = evaluateStr(ms, setter.Shift)
+			if setter.Attributes.Shift != "" {
+				newValue, err = evaluateStr(ms, setter.Attributes.Shift)
 				if err != nil {
 					log.Errorln(err)
 				}
 				if newValue != ms.Shift {
-					log.Tracef("id %s replaced with %s; expr = %v", ms.Shift, newValue, setter.Shift)
+					log.Tracef("id %s replaced with %s; expr = %v", ms.Shift, newValue, setter.Attributes.Shift)
 				}
 
 				ms.Shift = newValue
 			}
 
-			if setter.Logo != "" {
-				newValue, err = evaluateStr(ms, setter.Logo)
+			if setter.Attributes.Logo != "" {
+				newValue, err = evaluateStr(ms, setter.Attributes.Logo)
 				if err != nil {
 					log.Errorln(err)
 				}
 				if newValue != ms.Logo {
-					log.Tracef("title %s replaced with %s; expr = %v", ms.Logo, newValue, setter.Logo)
+					log.Tracef("title %s replaced with %s; expr = %v", ms.Logo, newValue, setter.Attributes.Logo)
 				}
 
 				ms.Logo = newValue
 			}
 
-			if setter.Group != "" {
-				newValue, err = evaluateStr(ms, setter.Group)
+			if setter.Attributes.Group != "" {
+				newValue, err = evaluateStr(ms, setter.Attributes.Group)
 				if err != nil {
 					log.Errorln(err)
 				}
 				if newValue != ms.Group {
-					log.Tracef("title %s replaced with %s; expr = %v", ms.Group, newValue, setter.Group)
+					log.Tracef("title %s replaced with %s; expr = %v", ms.Group, newValue, setter.Attributes.Group)
 				}
 
 				ms.Group = newValue
 			}
 
-			if setter.ChNo != "" {
-				newValue, err = evaluateStr(ms, setter.ChNo)
+			if setter.Attributes.ChNo != "" {
+				newValue, err = evaluateStr(ms, setter.Attributes.ChNo)
 				if err != nil {
 					log.Errorln(err)
 				}
 				if newValue != ms.ChNo {
-					log.Tracef("title %s replaced with %s; expr = %v", ms.ChNo, newValue, setter.ChNo)
+					log.Tracef("title %s replaced with %s; expr = %v", ms.ChNo, newValue, setter.Attributes.ChNo)
 				}
 
 				ms.ChNo = newValue

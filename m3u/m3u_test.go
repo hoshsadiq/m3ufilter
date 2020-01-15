@@ -72,6 +72,7 @@ func TestExtinfLineParser(t *testing.T) {
 				Logo:     "http://imgur.com/img.png",
 				Name:     "Stream Name",
 				Id:       "channel.uk",
+				CUID:     "7b5d2b7ac72fcd316cce413671ca0ada",
 			},
 		},
 		{
@@ -87,6 +88,7 @@ func TestExtinfLineParser(t *testing.T) {
 				Logo:     "http://imgur.com/img.png",
 				Name:     "Stream Name",
 				Id:       "channel.uk",
+				CUID:     "7b5d2b7ac72fcd316cce413671ca0ada",
 			},
 		},
 		{

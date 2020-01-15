@@ -2,6 +2,8 @@ package m3u
 
 import (
 	"bytes"
+	"crypto/md5"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"github.com/hoshsadiq/m3ufilter/config"
@@ -36,10 +38,17 @@ func (s Streams) Swap(i, j int) {
 	s[i], s[j] = s[j], s[i]
 }
 
+func GetMD5Hash(text string) string {
+	hasher := md5.New()
+	hasher.Write([]byte(text))
+	return hex.EncodeToString(hasher.Sum(nil))
+}
+
 type Stream struct {
 	Duration string
 	Name     string
 	Uri      string
+	CUID     string `yaml:"CUID"`
 
 	// these are attributes
 	ChNo    string `yaml:"chno"`
@@ -130,6 +139,8 @@ func parseExtinfLine(attrline string, urlLine string) (*Stream, error) {
 	urlLine = strings.TrimSpace(urlLine)
 
 	stream := &Stream{Uri: urlLine}
+	stream.CUID = GetMD5Hash(urlLine)
+
 	state := "duration"
 	key := ""
 	value := ""
@@ -160,7 +171,7 @@ func parseExtinfLine(attrline string, urlLine string) (*Stream, error) {
 			if string(c) != quote {
 				value += string(c)
 			} else {
-				switch key {
+				switch strings.ToLower(key) {
 				case "tvg-chno":
 					stream.ChNo = value
 				case "tvg-id":
