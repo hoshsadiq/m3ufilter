@@ -16,13 +16,14 @@ func updatePlaylist(conf *httpConfig) {
 
 	conf.lock = true
 	log.Info("Updating playlists")
-	newPlaylists, allFailed := m3u.GetPlaylist(conf.appConfig)
+	newPlaylists, newEpg, allFailed := m3u.ProcessConfig(conf.appConfig)
 	if allFailed {
 		log.Info("Skipping playlist synchronisation to server as all providers failed")
 	} else {
 		conf.playlists = &newPlaylists
+		conf.epg = newEpg
 	}
-	log.Info("Done, next we will update the EPG.")
+	log.Info("Done.")
 
 	conf.lock = false
 }

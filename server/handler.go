@@ -3,6 +3,7 @@ package server
 import (
 	"github.com/hoshsadiq/m3ufilter/config"
 	"github.com/hoshsadiq/m3ufilter/m3u"
+	"github.com/hoshsadiq/m3ufilter/m3u/xmltv"
 	"github.com/mileusna/crontab"
 	"net/http"
 )
@@ -12,7 +13,7 @@ type httpConfig struct {
 	playlists *m3u.Streams
 	lock      bool
 	crontab   *crontab.Crontab
-	//Epg       []
+	epg       *xmltv.XMLTV
 }
 
 type httpHandler struct {

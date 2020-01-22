@@ -2,11 +2,12 @@ package m3u
 
 import (
 	"github.com/hoshsadiq/m3ufilter/config"
+	"github.com/hoshsadiq/m3ufilter/m3u/xmltv"
 	"regexp"
 	"strings"
 )
 
-func setSegmentValues(ms *Stream, setters []*config.Setter) {
+func setSegmentValues(ms *Stream, epgChannel *xmltv.Channel, setters []*config.Setter) {
 	var newValue string
 	var err error
 
@@ -15,6 +16,7 @@ func setSegmentValues(ms *Stream, setters []*config.Setter) {
 	ms.meta.canonicalName = canonicaliseName(ms.Name)
 	ms.meta.originalName = ms.Name
 	ms.meta.originalId = ms.Id
+	ms.meta.epgChannel = epgChannel
 
 	for _, setter := range setters {
 		if shouldIncludeStream(ms, setter.Filters, false) {

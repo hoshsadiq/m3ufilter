@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/hoshsadiq/m3ufilter/config"
+	"github.com/hoshsadiq/m3ufilter/m3u/xmltv"
 	"io"
 	"strings"
 	"time"
@@ -43,16 +44,18 @@ func (s Streams) Swap(i, j int) {
 }
 
 type streamMeta struct {
-	originalName   string
-	originalId     string
+	originalName string
+	originalId   string
 
-	canonicalName  string
+	canonicalName string
 
-	definition     string
-	country        string
+	definition string
+	country    string
 
 	showCountry    bool
 	showDefinition bool
+
+	epgChannel *xmltv.Channel
 }
 
 func GetMD5Hash(text string) string {
@@ -90,7 +93,7 @@ func (s Stream) GetName() string {
 	return name
 }
 
-func decode(conf *config.Config, reader io.Reader, providerConfig *config.Provider) (Streams, error) {
+func decode(conf *config.Config, reader io.Reader, providerConfig *config.Provider, epg *xmltv.XMLTV) (Streams, error) {
 	buf := new(bytes.Buffer)
 	_, err := buf.ReadFrom(reader)
 	if err != nil {
@@ -103,6 +106,7 @@ func decode(conf *config.Config, reader io.Reader, providerConfig *config.Provid
 	var extinfLine string
 	var urlLine string
 	var eof bool
+	var epgChannel *xmltv.Channel
 	streams := Streams{}
 
 	lines := 0
@@ -134,7 +138,11 @@ func decode(conf *config.Config, reader io.Reader, providerConfig *config.Provid
 			continue
 		}
 
-		setSegmentValues(stream, providerConfig.Setters)
+		if epg != nil {
+			epgChannel = getEpgChannel(stream, epg)
+		}
+
+		setSegmentValues(stream, epgChannel, providerConfig.Setters)
 
 		streams = append(streams, stream)
 	}
@@ -143,6 +151,42 @@ func decode(conf *config.Config, reader io.Reader, providerConfig *config.Provid
 	log.Infof("Matched %d valid streams out of %d. Took %s", len(streams), lines, end)
 
 	return streams, nil
+}
+
+func getEpgChannel(stream *Stream, xmltv *xmltv.XMLTV) *xmltv.Channel {
+	var convertedDisplayName string
+	var displayNameLower string
+
+	streamTvgIdLower := strings.ToLower(stream.Id)
+	streamTvgNameLower := strings.ToLower(stream.TvgName)
+	streamChannelName := strings.ToLower(stream.Name)
+
+	for _, xmltvChannel := range xmltv.Channels {
+		if streamTvgIdLower == strings.ToLower(xmltvChannel.ID) {
+			return xmltvChannel
+		}
+	}
+	for _, xmltvChannel := range xmltv.Channels {
+		for _, displayName := range xmltvChannel.DisplayNames {
+			displayNameLower = strings.ToLower(displayName.Value)
+			convertedDisplayName = strings.Replace(displayNameLower, " ", "_", -1)
+
+			if convertedDisplayName == streamTvgNameLower || displayNameLower == streamTvgNameLower {
+				return xmltvChannel
+			}
+		}
+	}
+	for _, xmltvChannel := range xmltv.Channels {
+		for _, displayName := range xmltvChannel.DisplayNames {
+			displayNameLower = strings.ToLower(displayName.Value)
+
+			if streamChannelName == displayNameLower {
+				return xmltvChannel
+			}
+		}
+	}
+
+	return nil
 }
 
 func getLine(buf *bytes.Buffer) (string, bool) {

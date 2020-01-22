@@ -25,7 +25,7 @@ jobs:
       script:
         - diff -u <(echo -n) <(gofmt -d .)
         - go vet $(go list ./... | grep -v /vendor/)
-        - go test -v ./... # todo we don't actually have any tests yet, but soon!
+        - go test -v ./...
       deploy: ~
     - stage: push-manifests
       install:

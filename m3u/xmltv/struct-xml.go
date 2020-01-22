@@ -5,43 +5,45 @@ import (
 	"io"
 )
 
+// These structs are copied from the xteve project, with some slight adjustments
+
 const timefmt = "20060102150405 -0700"
 
-// XMLTV : XMLTV Datei
+// XMLTV
 type XMLTV struct {
 	Generator string   `xml:"generator-info-name,attr"`
 	Source    string   `xml:"source-info-name,attr"`
 	XMLName   xml.Name `xml:"tv"`
 
-	Channel []*Channel `xml:"channel"`
-	Program []*Program `xml:"programme"`
+	Channels   []*Channel   `xml:"channel"`
+	Programmes []*Programme `xml:"programme"`
 }
 
-// Channel : Kanäle
+// Channels
 type Channel struct {
-	ID          string        `xml:"id,attr"`
-	DisplayName []DisplayName `xml:"display-name"`
-	Icon        Icon          `xml:"icon"`
+	ID           string        `xml:"id,attr"`
+	DisplayNames []DisplayName `xml:"display-name"`
+	Icon         Icon          `xml:"icon"`
 }
 
-// DisplayName : Kanalname
+// DisplayName
 type DisplayName struct {
 	Value string `xml:",chardata"`
 }
 
-// Icon : Senderlogo
+// Icon
 type Icon struct {
 	Src string `xml:"src,attr"`
 }
 
-// Program : Programme
-type Program struct {
+// Programmes
+type Programme struct {
 	Channel string `xml:"channel,attr"`
 	Start   string `xml:"start,attr"`
 	Stop    string `xml:"stop,attr"`
 
 	Title           []*Title         `xml:"title"`
-	SubTitle        []*SubTitle      `xml:"sub-title"`
+	SubTitle        []*SubTitle      `xml:"sub-title,omitempty"`
 	Desc            []*Desc          `xml:"desc"`
 	Category        []*Category      `xml:"category"`
 	Country         []*Country       `xml:"country"`
@@ -57,22 +59,22 @@ type Program struct {
 
 // todo ideally some of these lang + value structs become map[lang]value instead of lists
 type Title struct {
-	Lang  string `xml:"lang,attr"`
+	Lang  string `xml:"lang,attr,omitempty"`
 	Value string `xml:",chardata"`
 }
 
 type SubTitle struct {
-	Lang  string `xml:"lang,attr"`
+	Lang  string `xml:"lang,attr,omitempty"`
 	Value string `xml:",chardata"`
 }
 
 type Desc struct {
-	Lang  string `xml:"lang,attr"`
+	Lang  string `xml:"lang,attr,omitempty"`
 	Value string `xml:",chardata"`
 }
 
 type Category struct {
-	Lang  string `xml:"lang,attr"`
+	Lang  string `xml:"lang,attr,omitempty"`
 	Value string `xml:",chardata"`
 }
 
@@ -116,6 +118,12 @@ type Live struct {
 	Value string `xml:",chardata"`
 }
 
-func Load(r io.Reader, xmltv *XMLTV) error {
+func Load(r io.Reader, xmltv *XMLTV) (err error) {
 	return xml.NewDecoder(r).Decode(xmltv)
+}
+
+func Dump(w io.Writer, xmltv *XMLTV) error {
+	enc := xml.NewEncoder(w)
+	enc.Indent("", "  ")
+	return enc.Encode(xmltv)
 }

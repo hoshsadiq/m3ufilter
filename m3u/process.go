@@ -17,14 +17,13 @@ var log = logger.Get()
 
 var client = NewClient(5)
 
-func GetPlaylist(conf *config.Config) (streams Streams, allFailed bool) {
+func ProcessConfig(conf *config.Config) (streams Streams, epg *xmltv.XMLTV, allFailed bool) {
 	errors := 0
 
 	epg, err := getEpg(conf.EpgProviders)
 	if err != nil {
-		panic(err) // todo
+		log.Errorf("Could not parse EPG, skipping all EPG related tasks; err=%v", err)
 	}
-	//log.Printf("%v", epg)
 
 	streams = Streams{}
 	// todo we can do each provider in its own coroutine, then converged at the end.
@@ -42,7 +41,7 @@ func GetPlaylist(conf *config.Config) (streams Streams, allFailed bool) {
 			}
 		}()
 
-		pl, err := decode(conf, bufio.NewReader(resp.Body), provider)
+		pl, err := decode(conf, bufio.NewReader(resp.Body), provider, epg)
 		if err != nil {
 			errors++
 			log.Errorf("could not decode playlist from provider %s, err = %v", provider.Uri, err)
@@ -63,24 +62,34 @@ func GetPlaylist(conf *config.Config) (streams Streams, allFailed bool) {
 			}
 
 			nextStream = streams[i+1]
-			setOutputMarkers(conf.Core.Canonicalise.DefaultCountry, stream, nextStream)
+			setMeta(conf.Core.Canonicalise.DefaultCountry, stream, nextStream)
 		}
 	}
 
+	var streamIds = make(map[string]bool, len(streams))
 	for _, stream := range streams {
-		for _, epgChannel := range epg.Channel {
-			if stream.meta.originalId == epgChannel.ID {
-				epgChannel.DisplayName = append(epgChannel.DisplayName, xmltv.DisplayName{Value:stream.GetName()})
-				break
-			}
-			//if stream.meta.originalName == epgChannel.DisplayName {
-			//
-			//}
-			log.Tracef("%v,%v", stream, epg)
+		if stream.Id != "" {
+			streamIds[stream.Id] = true
 		}
 	}
 
-	return streams, len(conf.Providers) == errors
+	var newProgrammes = make([]*xmltv.Programme, 0, len(epg.Programmes))
+	for _, programme := range epg.Programmes {
+		if _, ok := streamIds[programme.Channel]; ok {
+			newProgrammes = append(newProgrammes, programme)
+		}
+	}
+	epg.Programmes = newProgrammes
+
+	var newEpgChannels = make([]*xmltv.Channel, 0, len(epg.Channels))
+	for _, epgChannel := range epg.Channels {
+		if _, ok := streamIds[epgChannel.ID]; ok {
+			newEpgChannels = append(newEpgChannels, epgChannel)
+		}
+	}
+	epg.Channels = newEpgChannels
+
+	return streams, epg, len(conf.Providers) == errors
 }
 
 func getUri(uri string) (*http.Response, error) {
@@ -122,14 +131,14 @@ func getEpg(providers []*config.EpgProvider) (*xmltv.XMLTV, error) {
 		}
 	}
 
-	var channels = make(map[string]*xmltv.Channel, len(epg.Channel))
+	var channels = make(map[string]*xmltv.Channel, len(epg.Channels))
 	var nameIdMapping = make(map[string]string)
 
-	for _, c := range epg.Channel {
+	for _, c := range epg.Channels {
 		channel, ok := channels[c.ID]
 		var found = false
 		if !ok {
-			for _, dpname := range c.DisplayName {
+			for _, dpname := range c.DisplayNames {
 				channelId, ok := nameIdMapping[dpname.Value]
 				if ok {
 					channel, ok = channels[channelId]
@@ -141,22 +150,22 @@ func getEpg(providers []*config.EpgProvider) (*xmltv.XMLTV, error) {
 
 			if !found {
 				channels[c.ID] = c
-				for _, dpname := range c.DisplayName {
+				for _, dpname := range c.DisplayNames {
 					nameIdMapping[dpname.Value] = c.ID
 				}
 				continue
 			}
 		}
-		for _, left := range c.DisplayName {
+		for _, left := range c.DisplayNames {
 			found = false
-			for _, right := range channel.DisplayName {
+			for _, right := range channel.DisplayNames {
 				if right.Value == left.Value {
 					found = true
 					break
 				}
 			}
 			if !found {
-				channel.DisplayName = append(channel.DisplayName, left)
+				channel.DisplayNames = append(channel.DisplayNames, left)
 			}
 
 			nameIdMapping[left.Value] = c.ID
@@ -166,7 +175,7 @@ func getEpg(providers []*config.EpgProvider) (*xmltv.XMLTV, error) {
 	return &epg, nil
 }
 
-func setOutputMarkers(mainCountry string, left *Stream, right *Stream) {
+func setMeta(mainCountry string, left *Stream, right *Stream) {
 	if left.meta.canonicalName != right.meta.canonicalName {
 		return
 	}

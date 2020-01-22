@@ -2,18 +2,18 @@ package server
 
 import (
 	"errors"
+	"github.com/hoshsadiq/m3ufilter/m3u/xmltv"
 	"net/http"
 )
 
 func getEpg(conf *httpConfig, w http.ResponseWriter, r *http.Request) error {
+	var err error
 	if r.Method != "GET" {
-		err := errors.New(http.StatusText(http.StatusMethodNotAllowed))
+		err = errors.New(http.StatusText(http.StatusMethodNotAllowed))
 		return StatusError{Code: http.StatusMethodNotAllowed, Err: err}
 	}
 
 	// todo or is it: text/xml
 	w.Header().Set("Content-Type", "application/xml")
-
-	//writer.WriteOutput(conf.appConfig.Core.Output, w, *conf.Epg)
-	return nil
+	return xmltv.Dump(w, conf.epg)
 }
