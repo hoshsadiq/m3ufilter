@@ -46,7 +46,7 @@ func run(configFilename string, stdout *os.File, stderr *os.File) {
 	if conf.Core.ServerListen != "" {
 		server.Serve(conf)
 	} else {
-		playlist, _/*todo epg*/, _ := m3u.ProcessConfig(conf)
+		playlist, _ /*todo epg*/, _ := m3u.ProcessConfig(conf)
 		writer.WriteOutput(conf.Core.Output, stdout, playlist)
 	}
 }
