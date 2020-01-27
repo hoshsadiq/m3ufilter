@@ -8,7 +8,7 @@ import (
 	"net/http"
 )
 
-type httpConfig struct {
+type httpState struct {
 	appConfig *config.Config
 	playlists *m3u.Streams
 	lock      bool
@@ -17,8 +17,8 @@ type httpConfig struct {
 }
 
 type httpHandler struct {
-	conf     *httpConfig
-	callback func(e *httpConfig, w http.ResponseWriter, r *http.Request) error
+	conf     *httpState
+	callback func(e *httpState, w http.ResponseWriter, r *http.Request) error
 }
 
 func (h httpHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {

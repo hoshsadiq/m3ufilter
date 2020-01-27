@@ -7,7 +7,7 @@ import (
 )
 
 type EpgProvider struct {
-	Uri           string
+	Uri string
 }
 
 type Config struct {
@@ -29,6 +29,7 @@ type Core struct {
 	UpdateSchedule   string       `yaml:"update_schedule"`
 	Canonicalise     Canonicalise `yaml:"canonicalise"`
 	GroupOrder       []string     `yaml:"group_order"`
+	PrettyOutputXml  bool
 
 	groupOrderMap map[string]int
 }

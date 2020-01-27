@@ -122,8 +122,10 @@ func Load(r io.Reader, xmltv *XMLTV) (err error) {
 	return xml.NewDecoder(r).Decode(xmltv)
 }
 
-func Dump(w io.Writer, xmltv *XMLTV) error {
+func Dump(w io.Writer, xmltv *XMLTV, prettify bool) error {
 	enc := xml.NewEncoder(w)
-	enc.Indent("", "  ")
+	if prettify {
+		enc.Indent("", "  ")
+	}
 	return enc.Encode(xmltv)
 }

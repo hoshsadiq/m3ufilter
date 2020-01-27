@@ -4,7 +4,7 @@ import (
 	"github.com/hoshsadiq/m3ufilter/m3u"
 )
 
-func updatePlaylist(conf *httpConfig) {
+func updatePlaylist(conf *httpState) {
 	if conf.lock {
 		log.Info("Retrieval is locked, trying again next time...")
 		return
