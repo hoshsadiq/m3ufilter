@@ -8,8 +8,6 @@ import (
 
 type EpgProvider struct {
 	Uri           string
-	RemoveUnknown bool `yaml:"remove_unknown"`
-	Pretty        bool
 }
 
 type Config struct {
