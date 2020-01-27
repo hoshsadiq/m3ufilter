@@ -1,6 +1,7 @@
 package m3u
 
 import (
+	"github.com/hoshsadiq/m3ufilter/cache"
 	"github.com/hoshsadiq/m3ufilter/config"
 	"github.com/hoshsadiq/m3ufilter/m3u/xmltv"
 	"regexp"
@@ -128,12 +129,14 @@ func findDefinition(stream *Stream) string {
 }
 
 func canonicaliseName(name string) string {
-	name = regexWordCallback(name, countryReplaces, removeWord)
-	name = regexWordCallback(name, "TV|Channel", removeWord)
-	name = regexWordCallback(name, definitionReplaces, removeWord)
-
 	name = strings.Replace(name, ":", "", -1)
 	name = strings.Replace(name, "|", "", -1)
+	name = regexWordCallback(name, countryReplaces, removeWord)
+	name = regexWordCallback(name, definitionReplaces, removeWord)
+	name = regexWordCallback(name, "TV", removeWord)
+	if !cache.Regexp("(?i)^Channel \\d+$").Match([]byte(name)) {
+		name = regexWordCallback(name, "Channel", removeWord)
+	}
 
 	name = strings.Title(name)
 	name = strings.ToLower(name)

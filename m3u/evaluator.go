@@ -10,17 +10,6 @@ import (
 
 var evaluator = goval.NewEvaluator()
 
-// todo plenty of options are missing here
-const countryReplaces = `UK|GB|CA|CAN|USA|US|NL|BRA|BR|PT|LAT|RO|PL|PK|IN|FR|AU|AF|ARB|IT|DE|PH|IRE`
-
-var countryOverrides = map[string]string{
-	"GB":  "UK",
-	"CAN": "UK",
-	"USA": "US",
-}
-
-var definitionReplaces = `SD|HD|FHD`
-
 func evaluate(ms *Stream, expr string) (result interface{}, err error) {
 	var debug bool
 	if expr[0] == '?' {
@@ -102,7 +91,7 @@ func evaluatorMatch(args ...interface{}) (interface{}, error) {
 	regexString := args[1].(string)
 
 	re := cache.Regexp(regexString)
-	return (bool)(re.MatchString(subject)), nil
+	return re.MatchString(subject), nil
 }
 func evaluatorReplace(args ...interface{}) (interface{}, error) {
 	subject := args[0].(string)
@@ -110,18 +99,16 @@ func evaluatorReplace(args ...interface{}) (interface{}, error) {
 	replace := args[2].(string)
 
 	re := cache.Regexp(refind)
-	return (string)(re.ReplaceAllString(subject, replace)), nil
+	return re.ReplaceAllString(subject, replace), nil
 }
 func evaluatorToTvgId(args ...interface{}) (interface{}, error) {
 	subject := args[0].(string)
-	re := cache.Regexp(`(?i)\b(SD|HD|FHD)\b`)
-
-	subject = re.ReplaceAllString(subject, "")
+	subject = regexWordCallback(subject, definitionReplaces, removeWord)
 
 	subject = strings.Replace(subject, "&", "and", -1)
 	subject = strings.TrimSpace(subject)
 
-	re = cache.Regexp(`[^a-zA-Z0-9]`)
+	re := cache.Regexp(`[^a-zA-Z0-9]`)
 	tvgId := re.ReplaceAllString(subject, "")
 
 	return tvgId, nil
