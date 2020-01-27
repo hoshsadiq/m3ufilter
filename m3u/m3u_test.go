@@ -170,16 +170,16 @@ func runTest(path string, t *testing.T, testData simpleTest, ext string, conf *c
 		return
 	}
 
-	if !reflect.DeepEqual(streams, testData.Streams) {
-		expectedStreams, err := json.Marshal(testData.Streams)
-		if err != nil {
-			t.Fatalf("Failed to get json for expected streams; err = %v", err)
-		}
-		actualStreams, err := json.Marshal(streams)
-		if err != nil {
-			t.Fatalf("Failed to get json for actual streams; err = %v", err)
-		}
+	expectedStreams, err := json.Marshal(testData.Streams)
+	if err != nil {
+		t.Fatalf("Failed to get json for expected streams; err = %v", err)
+	}
+	actualStreams, err := json.Marshal(streams)
+	if err != nil {
+		t.Fatalf("Failed to get json for actual streams; err = %v", err)
+	}
 
+	if string(expectedStreams) != string(actualStreams) {
 		t.Logf("Test %s failed.", path)
 		t.Logf("  Expected streans: %s", expectedStreams)
 		t.Logf("  Got:              %s", actualStreams)

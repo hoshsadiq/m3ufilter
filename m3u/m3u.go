@@ -112,6 +112,9 @@ func decode(conf *config.Config, reader io.Reader, providerConfig *config.Provid
 	lines := 0
 	start := time.Now()
 	for !eof {
+		extinfLine = ""
+		urlLine = ""
+
 		// todo we need to support additional tags - https://github.com/kodi-pvr/pvr.iptvsimple#supported-m3u-and-xmltv-elements
 		for !eof && !strings.HasPrefix(extinfLine, "#EXTINF:") {
 			extinfLine, eof = getLine(buf)
