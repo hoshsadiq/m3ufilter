@@ -14,6 +14,9 @@ var (
 	Platform  = ""
 )
 
+var epgGeneratorName = "M3U Filter"
+var epgGeneratorUrl = "" // todo actually we want to retrieve this from http package
+
 func ShowVersion() {
 	fmt.Printf("Version: %s\n", Version)
 	fmt.Printf("GitCommit: %s\n", GitCommit)
@@ -21,4 +24,11 @@ func ShowVersion() {
 	fmt.Printf("GoVersion: %s\n", GoVersion)
 	fmt.Printf("Platform: %s\n", Platform)
 	os.Exit(0)
+}
+
+func EpgGeneratorName() string {
+	return fmt.Sprintf("%s %s", epgGeneratorName, Version)
+}
+func EpgGeneratorUrl() string {
+	return epgGeneratorUrl
 }

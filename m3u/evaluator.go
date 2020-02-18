@@ -103,7 +103,7 @@ func evaluatorReplace(args ...interface{}) (interface{}, error) {
 }
 func evaluatorToTvgId(args ...interface{}) (interface{}, error) {
 	subject := args[0].(string)
-	subject = regexWordCallback(subject, definitionReplaces, removeWord)
+	subject = regexWordCallback(subject, definitions, removeWord)
 
 	subject = strings.Replace(subject, "&", "and", -1)
 	subject = strings.TrimSpace(subject)
@@ -117,8 +117,8 @@ func evaluatorToTvgId(args ...interface{}) (interface{}, error) {
 func evaluatorTitle(args ...interface{}) (interface{}, error) {
 	subject := strings.ToLower(args[0].(string))
 
-	subject = regexWordCallback(subject, definitionReplaces, removeWord)
-	subject = regexWordCallback(subject, countryReplaces, removeWord)
+	subject = regexWordCallback(subject, definitions, removeWord)
+	subject = regexWordCallback(subject, countries, removeWord)
 
 	subject = strings.Title(subject)
 	return strings.TrimSpace(subject), nil

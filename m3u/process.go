@@ -69,12 +69,13 @@ func ProcessConfig(conf *config.Config) (streams Streams, epg *xmltv.XMLTV, allF
 	var streamIds = make(map[string]bool, len(streams))
 	for _, stream := range streams {
 		if stream.Id != "" {
-			streamIds[stream.Id] = true
+			streamIds[strings.ToLower(stream.Id)] = true
 		}
 	}
 
 	var newProgrammes = make([]*xmltv.Programme, 0, len(epg.Programmes))
 	for _, programme := range epg.Programmes {
+		programme.Channel = strings.ToLower(programme.Channel)
 		if _, ok := streamIds[programme.Channel]; ok {
 			newProgrammes = append(newProgrammes, programme)
 		}
@@ -83,13 +84,19 @@ func ProcessConfig(conf *config.Config) (streams Streams, epg *xmltv.XMLTV, allF
 
 	var newEpgChannels = make([]*xmltv.Channel, 0, len(epg.Channels))
 	for _, epgChannel := range epg.Channels {
+		epgChannel.ID = strings.ToLower(epgChannel.ID)
 		if _, ok := streamIds[epgChannel.ID]; ok {
 			newEpgChannels = append(newEpgChannels, epgChannel)
 		}
 	}
 	epg.Channels = newEpgChannels
+	setEpgInfo(epg)
 
 	return streams, epg, len(conf.Providers) == errors
+}
+
+func setEpgInfo(epg *xmltv.XMLTV) {
+	epg.SetGenerator(config.EpgGeneratorName(), config.EpgGeneratorUrl())
 }
 
 func getUri(uri string) (*http.Response, error) {

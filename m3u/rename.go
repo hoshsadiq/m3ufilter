@@ -101,7 +101,7 @@ func findCountry(stream *Stream) string {
 		return strings.ToUpper(strings.Split(stream.Id, ".")[1])
 	}
 
-	regex := `(?i)\b(` + countryReplaces + `)\b`
+	regex := `(?i)\b(` + countries + `)\b`
 	r := regexp.MustCompile(regex)
 	matches := r.FindStringSubmatch(stream.Name)
 	if matches != nil {
@@ -118,11 +118,16 @@ func findCountry(stream *Stream) string {
 }
 
 func findDefinition(stream *Stream) string {
-	regex := `(?i)\b(` + definitionReplaces + `)\b`
+	regex := `(?i)\b(` + definitions + `)\b`
 	r := regexp.MustCompile(regex)
 	matches := r.FindStringSubmatch(stream.Name)
 	if matches != nil {
-		return strings.ToUpper(matches[0])
+		definition := strings.ToUpper(matches[0])
+		if val, ok := definitionOverrides[definition]; ok {
+			definition = val
+		}
+
+		return definition
 	}
 
 	return ""
@@ -131,8 +136,8 @@ func findDefinition(stream *Stream) string {
 func canonicaliseName(name string) string {
 	name = strings.Replace(name, ":", "", -1)
 	name = strings.Replace(name, "|", "", -1)
-	name = regexWordCallback(name, countryReplaces, removeWord)
-	name = regexWordCallback(name, definitionReplaces, removeWord)
+	name = regexWordCallback(name, countries, removeWord)
+	name = regexWordCallback(name, definitions, removeWord)
 	name = regexWordCallback(name, "TV", removeWord)
 	if !cache.Regexp("(?i)^Channel \\d+$").Match([]byte(name)) {
 		name = regexWordCallback(name, "Channel", removeWord)
