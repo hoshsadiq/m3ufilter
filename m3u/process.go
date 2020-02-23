@@ -196,9 +196,17 @@ func setMeta(mainCountry string, left *Stream, right *Stream) {
 		if right.meta.country == "" || right.meta.country != mainCountry {
 			right.meta.showCountry = true
 		}
-	} else {
-		left.meta.showDefinition = left.meta.definition != right.meta.definition
-		right.meta.showDefinition = left.meta.showDefinition
+
+		left.Name = strings.TrimSpace(regexWordCallback(left.Name, countries, removeWord))
+		right.Name = strings.TrimSpace(regexWordCallback(right.Name, countries, removeWord))
+	}
+
+	if left.meta.definition != right.meta.definition {
+		left.meta.showDefinition = true
+		right.meta.showDefinition = true
+
+		left.Name = strings.TrimSpace(regexWordCallback(left.Name, definitions, removeWord))
+		right.Name = strings.TrimSpace(regexWordCallback(right.Name, definitions, removeWord))
 	}
 }
 

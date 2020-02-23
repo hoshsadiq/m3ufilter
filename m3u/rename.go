@@ -33,61 +33,61 @@ func setSegmentValues(ms *Stream, epgChannel *xmltv.Channel, setters []*config.S
 				ms.Name = newValue
 			}
 
-			if setter.Attributes.Id != "" {
-				newValue, err = evaluateStr(ms, setter.Attributes.Id)
+			if setter.Id != "" {
+				newValue, err = evaluateStr(ms, setter.Id)
 				if err != nil {
 					log.Errorln(err)
 				}
 				if newValue != ms.Id {
-					log.Tracef("id %s replaced with %s; expr = %v", ms.Id, newValue, setter.Attributes.Id)
+					log.Tracef("id %s replaced with %s; expr = %v", ms.Id, newValue, setter.Id)
 				}
 
 				ms.Id = newValue
 			}
 
-			if setter.Attributes.Shift != "" {
-				newValue, err = evaluateStr(ms, setter.Attributes.Shift)
+			if setter.Shift != "" {
+				newValue, err = evaluateStr(ms, setter.Shift)
 				if err != nil {
 					log.Errorln(err)
 				}
 				if newValue != ms.Shift {
-					log.Tracef("shift %s replaced with %s; expr = %v", ms.Shift, newValue, setter.Attributes.Shift)
+					log.Tracef("shift %s replaced with %s; expr = %v", ms.Shift, newValue, setter.Shift)
 				}
 
 				ms.Shift = newValue
 			}
 
-			if setter.Attributes.Logo != "" {
-				newValue, err = evaluateStr(ms, setter.Attributes.Logo)
+			if setter.Logo != "" {
+				newValue, err = evaluateStr(ms, setter.Logo)
 				if err != nil {
 					log.Errorln(err)
 				}
 				if newValue != ms.Logo {
-					log.Tracef("logo %s replaced with %s; expr = %v", ms.Logo, newValue, setter.Attributes.Logo)
+					log.Tracef("logo %s replaced with %s; expr = %v", ms.Logo, newValue, setter.Logo)
 				}
 
 				ms.Logo = newValue
 			}
 
-			if setter.Attributes.Group != "" {
-				newValue, err = evaluateStr(ms, setter.Attributes.Group)
+			if setter.Group != "" {
+				newValue, err = evaluateStr(ms, setter.Group)
 				if err != nil {
 					log.Errorln(err)
 				}
 				if newValue != ms.Group {
-					log.Tracef("group %s replaced with %s; expr = %v", ms.Group, newValue, setter.Attributes.Group)
+					log.Tracef("group %s replaced with %s; expr = %v", ms.Group, newValue, setter.Group)
 				}
 
 				ms.Group = newValue
 			}
 
-			if setter.Attributes.ChNo != "" {
-				newValue, err = evaluateStr(ms, setter.Attributes.ChNo)
+			if setter.ChNo != "" {
+				newValue, err = evaluateStr(ms, setter.ChNo)
 				if err != nil {
 					log.Errorln(err)
 				}
 				if newValue != ms.ChNo {
-					log.Tracef("chno %s replaced with %s; expr = %v", ms.ChNo, newValue, setter.Attributes.ChNo)
+					log.Tracef("chno %s replaced with %s; expr = %v", ms.ChNo, newValue, setter.ChNo)
 				}
 
 				ms.ChNo = newValue

@@ -42,17 +42,14 @@ type Provider struct {
 	Setters           []*Setter
 }
 
-type Attributes struct {
-	ChNo  string `yaml:"chno"`
-	Id    string `yaml:"tvg-id"`
-	Logo  string `yaml:"tvg-logo"`
-	Group string `yaml:"group-title"`
-	Shift string `yaml:"tvg-shift"`
-}
-
 type Setter struct {
-	Name       string
-	Attributes Attributes
+	ChNo  string `yaml:"chno"`
+	Name  string
+	Id    string
+	Logo  string
+	Group string
+	Shift string
+
 	Filters    []string
 }
 
@@ -97,7 +94,7 @@ func (c *Config) Load() {
 		log.Fatalf("could not read config file %s, err = %v", c.filepath, err)
 	}
 
-	err = yaml.Unmarshal([]byte(yamlFile), &c)
+	err = yaml.Unmarshal(yamlFile, &c)
 	if err != nil {
 		log.Fatalf("could not parse config file %s, err = %v", c.filepath, err)
 	}
