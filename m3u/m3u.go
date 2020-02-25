@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/hoshsadiq/m3ufilter/config"
+	"github.com/hoshsadiq/m3ufilter/m3u/filter"
 	"github.com/hoshsadiq/m3ufilter/m3u/xmltv"
 	"io"
 	"strings"
@@ -261,7 +262,7 @@ func parseExtinfLine(attrLine string, urlLine string) (*Stream, error) {
 				case "tvg-name":
 					stream.TvgName = value
 				case "tvg-logo":
-					stream.Logo = value
+					stream.Logo = filter.EnsureUniqueUrls(value)
 				case "group-title":
 					stream.Group = value
 				}

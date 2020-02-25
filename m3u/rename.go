@@ -1,7 +1,6 @@
 package m3u
 
 import (
-	"github.com/hoshsadiq/m3ufilter/cache"
 	"github.com/hoshsadiq/m3ufilter/config"
 	"github.com/hoshsadiq/m3ufilter/m3u/xmltv"
 	"regexp"
@@ -139,9 +138,10 @@ func canonicaliseName(name string) string {
 	name = regexWordCallback(name, countries, removeWord)
 	name = regexWordCallback(name, definitions, removeWord)
 	name = regexWordCallback(name, "TV", removeWord)
-	if !cache.Regexp("(?i)^Channel \\d+$").Match([]byte(name)) {
-		name = regexWordCallback(name, "Channel", removeWord)
-	}
+	// todo this still isn't correct
+	//if !cache.Regexp("(?i)^Channel \\d+$").Match([]byte(name)) {
+	//	name = regexWordCallback(name, "Channel", removeWord)
+	//}
 
 	name = strings.Title(name)
 	name = strings.ToLower(name)

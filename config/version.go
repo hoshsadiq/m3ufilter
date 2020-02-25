@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"strings"
 )
 
 // all these are set at compile time
@@ -27,7 +28,7 @@ func ShowVersion() {
 }
 
 func EpgGeneratorName() string {
-	return fmt.Sprintf("%s %s", epgGeneratorName, Version)
+	return strings.TrimSpace(fmt.Sprintf("%s %s", epgGeneratorName, Version))
 }
 func EpgGeneratorUrl() string {
 	return epgGeneratorUrl

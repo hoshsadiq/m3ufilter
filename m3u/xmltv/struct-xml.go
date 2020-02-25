@@ -2,6 +2,7 @@ package xmltv
 
 import (
 	"encoding/xml"
+	"github.com/hoshsadiq/m3ufilter/m3u/filter"
 	"io"
 	"time"
 )
@@ -16,10 +17,10 @@ type Time time.Time
 type XMLTV struct {
 	XMLName xml.Name `xml:"tv"`
 
-	Generator *GeneratorInfo `xml:"generator-info-name,attr"`
+	Generator *GeneratorInfo
 	Source    *Source
 
-	Date *Time `xml:"date,attr"`
+	Date *Time `xml:"date,attr,omitempty"`
 
 	Channels   []*Channel   `xml:"channel"`
 	Programmes []*Programme `xml:"programme"`
@@ -67,14 +68,16 @@ type DisplayName struct {
 type Url string
 
 type Icon struct {
-	Src string `xml:"src,attr"`
+	Src IconSrc `xml:"src,attr"`
 }
+
+type IconSrc string
 
 // Programmes
 type Programme struct {
 	Channel string `xml:"channel,attr"`
-	Start   Time   `xml:"start,attr"`
-	Stop    Time   `xml:"stop,attr"`
+	Start   *Time  `xml:"start,attr"`
+	Stop    *Time  `xml:"stop,attr"`
 
 	Title       []*Title       `xml:"title"`
 	SubTitle    []*SubTitle    `xml:"sub-title,omitempty"`
@@ -190,6 +193,19 @@ func (d Time) MarshalXMLAttr(name xml.Name) (xml.Attr, error) {
 	return xml.Attr{
 		Name:  name,
 		Value: time.Time(d).Format(TimeFormat),
+	}, nil
+}
+
+func (d *IconSrc) UnmarshalXMLAttr(attr xml.Attr) (err error) {
+	*d = IconSrc(filter.EnsureUniqueUrls(attr.Value))
+
+	return nil
+}
+
+func (d IconSrc) MarshalXMLAttr(name xml.Name) (xml.Attr, error) {
+	return xml.Attr{
+		Name:  name,
+		Value: string(d),
 	}, nil
 }
 

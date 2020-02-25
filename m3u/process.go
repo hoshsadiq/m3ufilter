@@ -179,6 +179,8 @@ func getEpg(providers []*config.EpgProvider) (*xmltv.XMLTV, error) {
 		}
 	}
 
+	log.Info("Finished loading EPG")
+
 	return &epg, nil
 }
 
