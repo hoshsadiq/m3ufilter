@@ -66,31 +66,33 @@ func ProcessConfig(conf *config.Config) (streams Streams, epg *xmltv.XMLTV, allF
 		}
 	}
 
-	var streamIds = make(map[string]bool, len(streams))
-	for _, stream := range streams {
-		if stream.Id != "" {
-			streamIds[strings.ToLower(stream.Id)] = true
+	if epg != nil {
+		var streamIds = make(map[string]bool, len(streams))
+		for _, stream := range streams {
+			if stream.Id != "" {
+				streamIds[strings.ToLower(stream.Id)] = true
+			}
 		}
-	}
 
-	var newProgrammes = make([]*xmltv.Programme, 0, len(epg.Programmes))
-	for _, programme := range epg.Programmes {
-		programme.Channel = strings.ToLower(programme.Channel)
-		if _, ok := streamIds[programme.Channel]; ok {
-			newProgrammes = append(newProgrammes, programme)
+		var newProgrammes = make([]*xmltv.Programme, 0, len(epg.Programmes))
+		for _, programme := range epg.Programmes {
+			programme.Channel = strings.ToLower(programme.Channel)
+			if _, ok := streamIds[programme.Channel]; ok {
+				newProgrammes = append(newProgrammes, programme)
+			}
 		}
-	}
-	epg.Programmes = newProgrammes
+		epg.Programmes = newProgrammes
 
-	var newEpgChannels = make([]*xmltv.Channel, 0, len(epg.Channels))
-	for _, epgChannel := range epg.Channels {
-		epgChannel.ID = strings.ToLower(epgChannel.ID)
-		if _, ok := streamIds[epgChannel.ID]; ok {
-			newEpgChannels = append(newEpgChannels, epgChannel)
+		var newEpgChannels = make([]*xmltv.Channel, 0, len(epg.Channels))
+		for _, epgChannel := range epg.Channels {
+			epgChannel.ID = strings.ToLower(epgChannel.ID)
+			if _, ok := streamIds[epgChannel.ID]; ok {
+				newEpgChannels = append(newEpgChannels, epgChannel)
+			}
 		}
+		epg.Channels = newEpgChannels
+		setEpgInfo(epg)
 	}
-	epg.Channels = newEpgChannels
-	setEpgInfo(epg)
 
 	return streams, epg, len(conf.Providers) == errors
 }
