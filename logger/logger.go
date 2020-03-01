@@ -2,9 +2,10 @@ package logger
 
 import (
 	"fmt"
-	"github.com/sirupsen/logrus"
 	"runtime"
 	"strings"
+
+	"github.com/sirupsen/logrus"
 )
 
 var logger *logrus.Logger
@@ -17,9 +18,9 @@ func Get() *logrus.Logger {
 		logger.SetFormatter(&logrus.TextFormatter{
 			FullTimestamp: true,
 			CallerPrettyfier: func(f *runtime.Frame) (string, string) {
-				repopath := strings.Split(f.File, basePkg+"/")[1]
-				fnc := strings.Split(f.Function, basePkg+"/")[1]
-				return fmt.Sprintf("%s()", fnc), fmt.Sprintf("%s:%d", repopath, f.Line)
+				paths := strings.Split(f.File, "/")
+				return fmt.Sprintf("%s()", f.Function[len(basePkg)+1:]),
+					fmt.Sprintf("%s:%d", paths[5]+"/"+paths[6], f.Line)
 			},
 		})
 
