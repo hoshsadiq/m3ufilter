@@ -10,6 +10,11 @@ import (
 
 var logger *logrus.Logger
 var basePkg = getPackage()
+var appPath string
+
+func Setup(baseAppPath string) {
+	appPath = baseAppPath
+}
 
 func Get() *logrus.Logger {
 	if logger == nil {
@@ -17,10 +22,10 @@ func Get() *logrus.Logger {
 
 		logger.SetFormatter(&logrus.TextFormatter{
 			FullTimestamp: true,
-			CallerPrettyfier: func(f *runtime.Frame) (string, string) {
-				paths := strings.Split(f.File, "/")
-				return fmt.Sprintf("%s()", f.Function[len(basePkg)+1:]),
-					fmt.Sprintf("%s:%d", paths[5]+"/"+paths[6], f.Line)
+			CallerPrettyfier: func(f *runtime.Frame) (_func string, file string) {
+				file = strings.Split(f.File, appPath+"/")[1]
+				_func = strings.Split(f.Function, basePkg+"/")[1]
+				return fmt.Sprintf("%s()", _func), fmt.Sprintf("%s:%d", file, f.Line)
 			},
 		})
 
@@ -32,9 +37,8 @@ func Get() *logrus.Logger {
 	return logger
 }
 
-func getPackage() string {
+func getPackage() (pkg string) {
 	pc, _, _, _ := runtime.Caller(1)
 	parts := strings.Split(runtime.FuncForPC(pc).Name(), "/")
-	pkage := strings.Join(parts[0:len(parts)-1], "/")
-	return pkage
+	return strings.Join(parts[0:len(parts)-1], "/")
 }
