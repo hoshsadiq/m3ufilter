@@ -15,7 +15,7 @@ import (
 
 var log = logger.Get()
 
-var client = NewClient(5)
+var client *http.Client
 
 func ProcessConfig(conf *config.Config) (streams Streams, epg *xmltv.XMLTV, allFailed bool) {
 	errors := 0
@@ -214,21 +214,22 @@ func setMeta(mainCountry string, left *Stream, right *Stream) {
 	}
 }
 
-func NewClient(MaxRetryAttempts int) *http.Client {
+func InitClient(conf *config.Config) {
 	transport := &http.Transport{}
 	transport.RegisterProtocol("file", http.NewFileTransport(http.Dir("/")))
 
 	tr := rehttp.NewTransport(
 		transport,
 		rehttp.RetryAll(
-			rehttp.RetryMaxRetries(MaxRetryAttempts),
+			rehttp.RetryMaxRetries(conf.Core.HttpMaxRetryAttempts),
 			rehttp.RetryStatuses(200),
 			rehttp.RetryTemporaryErr(),
 		),
 		rehttp.ConstDelay(time.Second),
 	)
-	return &http.Client{
-		Timeout:   time.Second * 30,
+
+	client = &http.Client{
+		Timeout:   time.Second * time.Duration(conf.Core.HttpTimeout),
 		Transport: tr,
 	}
 }

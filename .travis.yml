@@ -6,7 +6,8 @@ stages:
 language: go
 
 go:
-  - "1.12"
+  - "edge"
+  - "1.14"
 
 services:
   - docker

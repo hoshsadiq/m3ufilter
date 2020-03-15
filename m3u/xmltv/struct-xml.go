@@ -4,6 +4,7 @@ import (
 	"encoding/xml"
 	"github.com/hoshsadiq/m3ufilter/m3u/filter"
 	"io"
+	"strings"
 	"time"
 )
 
@@ -17,8 +18,12 @@ type Time time.Time
 type XMLTV struct {
 	XMLName xml.Name `xml:"tv"`
 
-	Generator *GeneratorInfo
-	Source    *Source
+	GeneratorName *string `xml:"generator-info-name,attr,omitempty"`
+	GeneratorUrl  *string `xml:"generator-info-url,attr,omitempty"`
+
+	SourceInfoName *string `xml:"source-info-name,attr,omitempty"`
+	SourceInfoUrl  *string `xml:"source-info-url,attr,omitempty"`
+	SourceUrl      *string `xml:"source-data-url,attr,omitempty"`
 
 	Date *Time `xml:"date,attr,omitempty"`
 
@@ -27,28 +32,14 @@ type XMLTV struct {
 }
 
 func (x *XMLTV) SetGenerator(name string, url string) {
-	x.Generator = &GeneratorInfo{
-		Name: &name,
-		Url:  &url,
-	}
+	x.GeneratorName = &name
+	x.GeneratorUrl = &url
 }
 
-func (x *XMLTV) SetSource(name string, url string) {
-	x.Generator = &GeneratorInfo{
-		Name: &name,
-		Url:  &url,
-	}
-}
-
-type GeneratorInfo struct {
-	Name *string `xml:"generator-info-name,attr"`
-	Url  *string `xml:"generator-info-url,attr"`
-}
-
-type Source struct {
-	InfoName *string `xml:"source-info-name,attr"`
-	InfoUrl  *string `xml:"source-info-url,attr"`
-	Url      *string `xml:"source-data-url,attr"`
+func (x *XMLTV) SetSource(infoName string, infoUrl string, url string) {
+	x.SourceInfoName = &infoName
+	x.SourceInfoUrl = &infoUrl
+	x.SourceUrl = &url
 }
 
 // Channels
@@ -216,8 +207,20 @@ func Load(r io.Reader, xmltv *XMLTV) (err error) {
 
 func Dump(w io.Writer, xmltv *XMLTV, prettify bool) error {
 	enc := xml.NewEncoder(w)
+
+	_, err := w.Write([]byte(strings.TrimSpace(xml.Header)))
+	if err != nil {
+		return err
+	}
+
 	if prettify {
 		enc.Indent("", "  ")
+
+		_, err = w.Write([]byte("\n"))
+		if err != nil {
+			return err
+		}
 	}
+
 	return enc.Encode(xmltv)
 }

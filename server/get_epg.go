@@ -8,7 +8,7 @@ import (
 
 func getEpg(state *httpState, w http.ResponseWriter, r *http.Request) error {
 	var err error
-	if r.Method != "GET" {
+	if r.Method != "HEAD" && r.Method != "GET" {
 		err = errors.New(http.StatusText(http.StatusMethodNotAllowed))
 		return StatusError{Code: http.StatusMethodNotAllowed, Err: err}
 	}

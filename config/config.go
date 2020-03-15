@@ -23,13 +23,15 @@ type Canonicalise struct {
 }
 
 type Core struct {
-	ServerListen     string `yaml:"server_listen"`
-	AutoReloadConfig bool   `yaml:"auto_reload_config"`
-	Output           string
-	UpdateSchedule   string       `yaml:"update_schedule"`
-	Canonicalise     Canonicalise `yaml:"canonicalise"`
-	GroupOrder       []string     `yaml:"group_order"`
-	PrettyOutputXml  bool
+	ServerListen         string `yaml:"server_listen"`
+	AutoReloadConfig     bool   `yaml:"auto_reload_config"`
+	Output               string
+	UpdateSchedule       string       `yaml:"update_schedule"`
+	Canonicalise         Canonicalise `yaml:"canonicalise"`
+	GroupOrder           []string     `yaml:"group_order"`
+	PrettyOutputXml      bool
+	HttpTimeout          uint8 `yaml:"http_timeout"` // in seconds
+	HttpMaxRetryAttempts int   `yaml:"http_max_retry_attempts"`
 
 	groupOrderMap map[string]int
 }
@@ -50,7 +52,7 @@ type Setter struct {
 	Group string
 	Shift string
 
-	Filters    []string
+	Filters []string
 }
 
 type Replacement struct {
@@ -69,9 +71,11 @@ func New(filepath string) *Config {
 	config = &Config{
 		filepath: filepath,
 		Core: &Core{
-			AutoReloadConfig: true,
-			UpdateSchedule:   "* */24 * * *",
-			Output:           "m3u",
+			AutoReloadConfig:     true,
+			UpdateSchedule:       "* */24 * * *",
+			Output:               "m3u",
+			HttpTimeout:          60,
+			HttpMaxRetryAttempts: 5,
 			Canonicalise: Canonicalise{
 				Enable:         true,
 				DefaultCountry: "uk",
