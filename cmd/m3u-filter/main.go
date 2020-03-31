@@ -9,6 +9,13 @@ import (
 	"github.com/hoshsadiq/m3ufilter/writer"
 	"github.com/mitchellh/go-homedir"
 	"os"
+	"path/filepath"
+	"runtime"
+)
+
+var (
+	_, b, _, _ = runtime.Caller(0)
+	appPath    = filepath.Dir(filepath.Dir(filepath.Dir(b)))
 )
 
 func main() {
@@ -27,6 +34,7 @@ func main() {
 		panic(e)
 	}
 
+	logger.Setup(appPath)
 	run(path, fd(*playlistOutput, false), fd(*logOutput, true))
 }
 
