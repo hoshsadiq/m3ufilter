@@ -62,7 +62,7 @@ func fd(filename string, defaultStderr bool) *os.File {
 		return os.Stdout
 	}
 
-	fd, err := os.Open(filename)
+	fd, err := os.Create(filename)
 	if err != nil {
 		panic(err)
 	}
