@@ -6,8 +6,9 @@ stages:
 language: go
 
 go:
-  - "edge"
   - "1.14"
+  - "release"
+  - "tip"
 
 services:
   - docker
@@ -64,6 +65,7 @@ install:
   - go get github.com/mitchellh/gox
 
 before_script:
+  - go version
   - docker version
   - |
     if [[ "$OS" == "linux" ]]; then
