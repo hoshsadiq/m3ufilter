@@ -17,6 +17,27 @@ var log = logger.Get()
 
 var client *http.Client
 
+func processProvider(conf *config.Config, provider *config.Provider, epg *xmltv.XMLTV) Streams {
+	resp, err := getUri(provider.Uri)
+	if err != nil {
+		log.Errorf("Could not retrieve file from %s, err = %v", provider.Uri, err)
+		return nil
+	}
+	defer func() {
+		err := resp.Body.Close()
+		if err != nil {
+			log.Errorf("could not close request body for provider %s, err = %v", provider.Uri, err)
+		}
+	}()
+
+	pl, err := decode(conf, bufio.NewReader(resp.Body), provider, epg)
+	if err != nil {
+		log.Errorf("could not decode playlist from provider %s, err = %v", provider.Uri, err)
+		return nil
+	}
+	return pl
+}
+
 func ProcessConfig(conf *config.Config) (streams Streams, epg *xmltv.XMLTV, allFailed bool) {
 	errors := 0
 
@@ -28,24 +49,12 @@ func ProcessConfig(conf *config.Config) (streams Streams, epg *xmltv.XMLTV, allF
 	streams = Streams{}
 	// todo we can do each provider in its own coroutine, then converged at the end.
 	//   furthermore, each line can be done in its own coroutine as well.
+	var pl Streams
 	for _, provider := range conf.Providers {
-		resp, err := getUri(provider.Uri)
-		if err != nil {
-			errors++
-			log.Errorf("Could not retrieve file from %s, err = %v", provider.Uri, err)
-		}
-		defer func() {
-			err := resp.Body.Close()
-			if err != nil {
-				log.Errorf("could not close request body for provider %s, err = %v", provider.Uri, err)
-			}
-		}()
+		pl = processProvider(conf, provider, epg)
 
-		pl, err := decode(conf, bufio.NewReader(resp.Body), provider, epg)
-		if err != nil {
+		if pl == nil {
 			errors++
-			log.Errorf("could not decode playlist from provider %s, err = %v", provider.Uri, err)
-			continue
 		} else {
 			streams = append(streams, pl...)
 		}
@@ -83,11 +92,23 @@ func ProcessConfig(conf *config.Config) (streams Streams, epg *xmltv.XMLTV, allF
 		}
 		epg.Programmes = newProgrammes
 
+		var addChannel bool
 		var newEpgChannels = make([]*xmltv.Channel, 0, len(epg.Channels))
 		for _, epgChannel := range epg.Channels {
 			epgChannel.ID = strings.ToLower(epgChannel.ID)
+
 			if _, ok := streamIds[epgChannel.ID]; ok {
-				newEpgChannels = append(newEpgChannels, epgChannel)
+				addChannel = true
+				for _, newEpgChannel := range newEpgChannels {
+					if newEpgChannel.ID == epgChannel.ID {
+						addChannel = false
+						newEpgChannel.DisplayNames = append(newEpgChannel.DisplayNames, epgChannel.DisplayNames...)
+						break
+					}
+				}
+				if addChannel {
+					newEpgChannels = append(newEpgChannels, epgChannel)
+				}
 			}
 		}
 		epg.Channels = newEpgChannels

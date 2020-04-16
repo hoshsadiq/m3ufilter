@@ -94,6 +94,7 @@ func (s Stream) GetName() string {
 	return name
 }
 
+// todo we can get rid of config as an argument by utilising some sort of state instead.
 func decode(conf *config.Config, reader io.Reader, providerConfig *config.Provider, epg *xmltv.XMLTV) (Streams, error) {
 	buf := new(bytes.Buffer)
 	_, err := buf.ReadFrom(reader)

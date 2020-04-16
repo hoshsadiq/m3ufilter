@@ -20,7 +20,7 @@ var (
 
 func main() {
 	configFile := flag.String("config", "~/.m3u.conf", "Config file location")
-	playlistOutput := flag.String("playlist", "", "Where to output the playlist data. Ignored when using -server flag. Defaults to stdout")
+	playlistOutput := flag.String("playlist", "", "Where to output the playlist data. Ignored when using server options in the config. Defaults to stdout")
 	logOutput := flag.String("log", "", "Where to output logs. Defaults to stderr")
 	versionFlag := flag.Bool("version", false, "show version and exit")
 	flag.Parse()
