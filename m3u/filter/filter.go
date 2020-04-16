@@ -6,7 +6,7 @@ import (
 )
 
 func EnsureUniqueUrls(urlsStr string) string {
-	if ! strings.Contains(urlsStr, "|") {
+	if !strings.Contains(urlsStr, "|") {
 		return urlsStr
 	}
 
