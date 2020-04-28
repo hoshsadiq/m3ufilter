@@ -30,10 +30,6 @@ func setSegmentValues(ms *Stream, epgChannel *xmltv.Channel, setters []*config.S
 				}
 
 				ms.Name = newValue
-
-				if epgChannel != nil {
-					addDisplayNameToChannel(epgChannel, newValue)
-				}
 			}
 
 			if setter.Id != "" {
@@ -46,10 +42,6 @@ func setSegmentValues(ms *Stream, epgChannel *xmltv.Channel, setters []*config.S
 				}
 
 				ms.Id = newValue
-
-				if epgChannel != nil {
-					addDisplayNameToChannel(epgChannel, ms.GetName())
-				}
 
 				// todo if we change the id, we need to accommodate the epg as well
 			}
