@@ -2,6 +2,7 @@ package logger
 
 import (
 	"fmt"
+	"os"
 	"runtime"
 	"strings"
 
@@ -14,6 +15,9 @@ var appPath string
 
 func Setup(baseAppPath string) {
 	appPath = baseAppPath
+	if runtime.GOOS == "windows" {
+		appPath = strings.ReplaceAll(appPath, string(os.PathSeparator), "/")
+	}
 }
 
 func Get() *logrus.Logger {
@@ -22,10 +26,15 @@ func Get() *logrus.Logger {
 
 		logger.SetFormatter(&logrus.TextFormatter{
 			FullTimestamp: true,
-			CallerPrettyfier: func(f *runtime.Frame) (_func string, file string) {
+			CallerPrettyfier: func(f *runtime.Frame) (fn string, file string) {
 				file = strings.Split(f.File, appPath+"/")[1]
-				_func = strings.Split(f.Function, basePkg+"/")[1]
-				return fmt.Sprintf("%s()", _func), fmt.Sprintf("%s:%d", file, f.Line)
+
+				fn = f.Function
+				if strings.HasPrefix(f.Function, basePkg) {
+					fn = strings.Split(f.Function, basePkg+"/")[1]
+				}
+
+				return fmt.Sprintf("%s()", fn), fmt.Sprintf("%s:%d", file, f.Line)
 			},
 		})
 
