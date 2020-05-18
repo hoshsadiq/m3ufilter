@@ -8,11 +8,11 @@ import (
 
 // all these are set at compile time
 var (
-	Version   = ""
-	GitCommit = ""
-	BuildDate = ""
-	GoVersion = ""
-	Platform  = ""
+	Version   string
+	GitCommit string
+	BuildDate string
+	GoVersion string
+	Platform  string
 )
 
 var epgGeneratorName = "M3U Filter"

@@ -1,34 +1,36 @@
+core:
+  output: m3u
+  auto_reload_config: true
+  canonicalise:
+    enable: true
+  group_order:
+    - Entertainment
+    - Family/Kids
 providers:
-  - uri: file:///home/hosh/Workspace/src/github.com/hoshsadiq/m3ufilter/myplay2.m3u
-    replacements:
-      name:
-        - find: "[\\s\\:\\|]+"
-          replace: " "
-
+  - uri: file://playlist.m3u
+    ignore_parse_errors: true
     filters:
-      name:
-        exclude:
-          - "(?i)Low Bandwith$"
-          - "(?i)Low BW$"
-      attributes:
-        group-title:
-          include:
-            - "^entertainment$"
-            - "^My Country$"
+      - |
+        Group in [
+          "Documentaries",
+          "Entertainment",
+          "Kids",
+          "Movies",
+          "Music",
+          "News",
+        ]
+
     setters:
-      - name: KTV
-        attributes:
-          tvg-name: KTV
+      - name: replace(Name, " +", " ")
+      - Group: Family/Kids
         filters:
-          attributes:
-            tvg-id:
-              include:
-                - "^ktv.ku$"
-      - name: Channel 1
-        attributes:
-          tvg-name: Channel 1
-          tvg-id: channelone.uk
+          - match(Group, "Kids")
+      - name: replace(Name, "^Sometoon Network", "SN")
         filters:
-          name:
-          include:
-            - "^ChannelOne$"
+          - match(Name, "^Sometoon Network")
+      - id: =bbc.us
+        shift: =+3
+        filters:
+          - Name == "BBC America" && match(Group, "^US |")
+epg_providers:
+  - uri: file://myepg.xml

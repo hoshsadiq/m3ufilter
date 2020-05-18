@@ -56,7 +56,6 @@ env:
     - OS=windows ARCH=amd64
     - OS=windows ARCH=386
     - OS=darwin ARCH=amd64
-    - OS=darwin ARCH=386
 
 install:
   - mkdir -p build
@@ -91,7 +90,6 @@ script:
   - |
     if [[ "$OS" == "linux" ]]; then
       docker build --build-arg "ARCH=$ARCH" -t $TRAVIS_REPO_SLUG:${TRAVIS_TAG:-v0.0.0}-$ARCH .
-
 
       # based on https://github.com/rmoriz/multiarch-test/blob/master/hooks/build
       tempdir=$(mktemp -d -t docker-rearch.XXXXXXXX)
