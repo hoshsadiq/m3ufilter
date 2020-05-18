@@ -28,9 +28,8 @@ func Get() *logrus.Logger {
 			FullTimestamp: true,
 			CallerPrettyfier: func(f *runtime.Frame) (fn string, file string) {
 				file = strings.Split(f.File, appPath+"/")[1]
-
 				fn = f.Function
-				if strings.HasPrefix(f.Function, basePkg) {
+				if fn != "main.main" {
 					fn = strings.Split(f.Function, basePkg+"/")[1]
 				}
 
