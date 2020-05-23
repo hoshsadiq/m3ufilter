@@ -146,8 +146,10 @@ func parseExtinfLine(attrline string, urlLine string) (*Stream, error) {
 	value := ""
 	quote := "\""
 	escapeNext := false
-	for i := 8; i < len(attrline); i++ {
-		c := attrline[i]
+	for i, c := range attrline {
+		if i < 8 {
+			continue
+		}
 
 		if escapeNext {
 			if state == "duration" {
@@ -242,6 +244,8 @@ func parseExtinfLine(attrline string, urlLine string) (*Stream, error) {
 	if state == "quotes" {
 		return nil, errors.New(fmt.Sprintf("Unclosed quote on line: %s", attrline))
 	}
+
+	stream.Name = strings.TrimSpace(stream.Name)
 
 	return stream, nil
 }

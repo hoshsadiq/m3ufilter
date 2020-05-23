@@ -37,3 +37,8 @@ streams:
     uri: "http://url.com/5"
     tvg-name: "overwritten tvg-name"
     CUID: "8fe811e719eb8010c5928d7840780324"
+  - duration: "-1"
+    name: "extra spaces"
+    uri: "http://url.com/6"
+    tvg-name: "overwritten tvg-name"
+    CUID: "5a6564fc3c2d1fc408932dbad6758578"

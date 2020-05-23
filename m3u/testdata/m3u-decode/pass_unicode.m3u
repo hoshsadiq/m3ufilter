@@ -1,0 +1,6 @@
+#EXTM3U
+#EXTINF:-1 cn-id=10338245 cn-records=1 group-title="Основные", Первый канал
+http://url.com/1
+
+#EXTINF:-1 cn-id=62343177 cn-records=1 group-title="Перекрестки", Уссурийск, Некрасова - Чичерина
+http://url.com/2

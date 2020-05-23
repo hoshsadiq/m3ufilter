@@ -128,54 +128,63 @@ func TestDecoder(t *testing.T) {
 
 	logger.Get().SetLevel(logrus.WarnLevel)
 
-	_ = filepath.Walk("testdata/testing", func(path string, info os.FileInfo, err error) error {
+	_ = filepath.Walk("testdata/m3u-decode", func(path string, info os.FileInfo, err error) error {
 		//var testData interface{}
 		var testData simpleTest
 
 		ext := filepath.Ext(path)
 		if !info.IsDir() && (ext == ".yaml" || ext == ".yml") {
-			yamlFile, err := ioutil.ReadFile(path)
-			if err != nil {
-				t.Fatal(err)
-			}
-
-			err = yaml.Unmarshal([]byte(yamlFile), &testData)
-			if err != nil {
-				t.Fatal(err)
-			}
-
-			m3ufile := strings.TrimSuffix(path, ext) + ".m3u"
-			f, err := os.Open(m3ufile)
-			if err != nil {
-				t.Fatal(err)
-			}
-			defer f.Close()
-
-			streams, err := decode(conf, f, &testData.Provider)
-			if testData.ExpectedError != "__no_error__" && (err == nil || err.Error() != testData.ExpectedError) {
-				t.Errorf("Test %s failed. Expected err %s, but got %s", path, testData.ExpectedError, err)
-				return nil
-			}
-
-			if !reflect.DeepEqual(streams, testData.Streams) {
-				expectedStreams, err := json.Marshal(testData.Streams)
-				if err != nil {
-					panic(err)
-				}
-				actualStreams, err := json.Marshal(streams)
-				if err != nil {
-					panic(err)
-				}
-
-				t.Logf("Test %s failed.", path)
-				t.Logf("  Expected streans: %s", expectedStreams)
-				t.Logf("  Got:              %s", actualStreams)
-				t.Fail()
-			}
+			runTest(path, t, testData, ext, conf)
 		}
 
 		return nil
 	})
+}
+
+func runTest(path string, t *testing.T, testData simpleTest, ext string, conf *config.Config) {
+	yamlFile, err := ioutil.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = yaml.Unmarshal(yamlFile, &testData)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	m3ufile := strings.TrimSuffix(path, ext) + ".m3u"
+	f, err := os.Open(m3ufile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() {
+		err := f.Close()
+		if err != nil {
+			t.Errorf("could not close file %s, err = %v", m3ufile, err)
+		}
+	}()
+
+	streams, err := decode(conf, f, &testData.Provider)
+	if testData.ExpectedError != "__no_error__" && (err == nil || err.Error() != testData.ExpectedError) {
+		t.Errorf("Test %s failed. Expected err %s, but got %s", path, testData.ExpectedError, err)
+		return
+	}
+
+	if !reflect.DeepEqual(streams, testData.Streams) {
+		expectedStreams, err := json.Marshal(testData.Streams)
+		if err != nil {
+			t.Fatalf("Failed to get json for expected streams; err = %v", err)
+		}
+		actualStreams, err := json.Marshal(streams)
+		if err != nil {
+			t.Fatalf("Failed to get json for actual streams; err = %v", err)
+		}
+
+		t.Logf("Test %s failed.", path)
+		t.Logf("  Expected streans: %s", expectedStreams)
+		t.Logf("  Got:              %s", actualStreams)
+		t.Fail()
+	}
 }
 
 type simpleTest struct {

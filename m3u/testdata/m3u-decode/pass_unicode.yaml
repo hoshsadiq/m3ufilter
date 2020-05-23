@@ -1,0 +1,24 @@
+provider:
+  uri: string
+  ignore_parse_errors: false
+  filters: []
+  setters: []
+
+expected_error: "__no_error__"
+streams:
+  - duration: "-1"
+    name: "Первый канал"
+    uri: "http://url.com/1"
+    tvg-id: ""
+    tvg-name: ""
+    tvg-logo: ""
+    group-title: "Основные"
+    CUID: "2e1699d5ade5f15c662e5a564806192a"
+  - duration: "-1"
+    name: "Уссурийск, Некрасова - Чичерина"
+    uri: "http://url.com/2"
+    tvg-id: ""
+    tvg-name: ""
+    tvg-logo: ""
+    group-title: "Перекрестки"
+    CUID: "5c58a9b49691169defb1279bfa659273"

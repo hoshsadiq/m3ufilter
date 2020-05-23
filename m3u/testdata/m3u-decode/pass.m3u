@@ -9,3 +9,5 @@ http://url.com/3
 http://url.com/4
 #EXTINF:-1 tvg-name="overwritten tvg-name",Overwrite tvg-name
 http://url.com/5
+#EXTINF:-1 tvg-name="overwritten tvg-name",   extra spaces
+http://url.com/6
