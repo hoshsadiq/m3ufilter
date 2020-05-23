@@ -22,13 +22,14 @@ func evaluate(ms *Stream, expr string) (result interface{}, err error) {
 	}
 
 	variables := map[string]interface{}{
-		"ChNo":     ms.ChNo,
-		"Id":       ms.Id,
-		"Name":     ms.Name,
-		"Uri":      ms.Uri,
-		"Duration": ms.Duration,
-		"Logo":     ms.Logo,
-		"Group":    ms.Group,
+		"ChNo":      ms.ChNo,
+		"Id":        ms.Id,
+		"Name":      ms.Name,
+		"Uri":       ms.Uri,
+		"Duration":  ms.Duration,
+		"Logo":      ms.Logo,
+		"Group":     ms.Group,
+		"Available": ms.meta.available,
 	}
 
 	expr = cache.Expr(expr)

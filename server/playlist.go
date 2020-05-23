@@ -11,10 +11,18 @@ func updatePlaylist(conf *httpState) {
 	}
 
 	if conf.appConfig.Core.AutoReloadConfig {
-		conf.appConfig.Load()
+		err := conf.appConfig.Load()
+		if err != nil {
+			log.Errorf("Failed to reload the config, skipping updating playlist.")
+			return
+		}
 	}
 
 	conf.lock = true
+	defer func() {
+		conf.lock = false
+	}()
+
 	log.Info("Updating playlists")
 	newPlaylists, newEpg, allFailed := m3u.ProcessConfig(conf.appConfig)
 	if allFailed {
@@ -23,7 +31,5 @@ func updatePlaylist(conf *httpState) {
 		conf.playlists = &newPlaylists
 		conf.epg = newEpg
 	}
-	log.Info("Done.")
-
-	conf.lock = false
+	log.Info("Done")
 }

@@ -87,10 +87,26 @@ providers:
     If true, this will ignore errors when trying to parse an individual channel. E.g. `tvg-id="Channel "1"` would not be possible to parse, and will be ignored without any errors.
     Default: `false`
 
-- `providers.check_streams` (`true|false`)
+- `providers.check_streams.enabled` (`true|false`)
 
     If true, the stream URLs will be checked to see if they are alive before including them.
     Default: `false`
+
+- `providers.check_streams.method` (`head|get`)
+
+    How to validate whether a stream is available or not. Either using a `HEAD` request or `GET` request.
+    
+    The difference here is that `HEAD` is less likely to be correct. Often streams return that it is available when in reality is not. On the other hand, the GET method tries to actually retrieve zero bytes from the stream, thus this will give more accurate results. The problem with this is that, if your provider doesn't allow many connections at the same time, your stream will likely get cut off if the check is happening while you are watching a stream, and you'll have to wait until the update is finished before you can watch it without problems. If you time your updates to be when you're not watching any streams (e.g. when you're asleep for example), this shouldn't be a problem.
+    
+    Another thing to consider here is that, currently the stream available is only updated when the full update runs. Should the stream because available before the next run, as far as m3ufilter is concerned, this stream will stay unavailable until the next.
+    
+    Default: `head`
+
+- `providers.check_streams.action` (`remove|noop`)
+
+    The action to take if a stream is unavailable. Remove or don't take any action. `noop` is useful if you want to change the name of the channel to something else, e.g. prefix it with `[Unavailable]`.
+    
+    Default: `remove`
 
 - `providers.filters` (`list` of `string`)
 

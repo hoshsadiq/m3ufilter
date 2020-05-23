@@ -42,7 +42,11 @@ func run(configFilename string, stdout *os.File, stderr *os.File) {
 	log := logger.Get()
 	log.SetOutput(stderr)
 
-	conf := config.New(configFilename)
+	conf, err := config.New(configFilename)
+	if err != nil {
+		os.Exit(1)
+	}
+
 	m3u.InitClient(conf)
 	if conf.Core.ServerListen != "" {
 		server.Serve(conf)

@@ -19,7 +19,7 @@ func setSegmentValues(ms *Stream, epgChannel *xmltv.Channel, setters []*config.S
 	ms.meta.epgChannel = epgChannel
 
 	for _, setter := range setters {
-		if shouldIncludeStream(ms, setter.Filters, false) {
+		if shouldIncludeStream(ms, setter.Filters, config.CheckStreams{Enabled: false}) {
 			if setter.Name != "" {
 				newValue, err = evaluateStr(ms, setter.Name)
 				if err != nil {

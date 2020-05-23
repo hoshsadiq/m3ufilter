@@ -57,6 +57,7 @@ type streamMeta struct {
 	showDefinition bool
 
 	epgChannel *xmltv.Channel
+	available  bool
 }
 
 func GetMD5Hash(text string) string {

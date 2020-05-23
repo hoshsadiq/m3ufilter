@@ -1,10 +1,12 @@
 package config
 
 import (
+	"github.com/hoshsadiq/m3ufilter/logger"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
-	"log"
 )
+
+var log = logger.Get()
 
 type EpgProvider struct {
 	Uri string
@@ -36,10 +38,55 @@ type Core struct {
 	groupOrderMap map[string]int
 }
 
+type CheckStreamsAction string
+
+const (
+	InvalidStreamRemove CheckStreamsAction = "remove"
+	InvalidStreamNoop                      = "noop"
+)
+
+type CheckStreams struct {
+	Enabled bool
+	Method  string
+	Action  CheckStreamsAction
+}
+
+func (c *CheckStreams) UnmarshalYAML(unmarshal func(interface{}) error) (err error) {
+	// first we try the old mechanism for backwards compatibility
+	err = unmarshal(&c.Enabled)
+	if err == nil {
+		log.Warnf("using a boolean value for provider.check_streams is deprecated, this will be removed in the future. Please upgrade to new method. See the docs for information.")
+		c.Method = "head"
+		c.Action = "remove"
+		return
+	}
+
+	cs := struct {
+		Enabled bool
+		Method  string
+		Action  CheckStreamsAction
+	}{
+		Enabled: false,
+		Action:  "remove",
+		Method:  "head",
+	}
+
+	err = unmarshal(&cs)
+	if err != nil {
+		return err
+	}
+
+	c.Enabled = cs.Enabled
+	c.Action = cs.Action
+	c.Method = cs.Method
+
+	return
+}
+
 type Provider struct {
 	Uri               string
-	IgnoreParseErrors bool `yaml:"ignore_parse_errors"`
-	CheckStreams      bool `yaml:"check_streams"`
+	IgnoreParseErrors bool         `yaml:"ignore_parse_errors"`
+	CheckStreams      CheckStreams `yaml:"check_streams"`
 	Filters           []string
 	Setters           []*Setter
 }
@@ -67,7 +114,7 @@ type Replacer struct {
 
 var config *Config
 
-func New(filepath string) *Config {
+func New(filepath string) (*Config, error) {
 	config = &Config{
 		filepath: filepath,
 		Core: &Core{
@@ -83,25 +130,28 @@ func New(filepath string) *Config {
 		},
 	}
 
-	config.Load()
+	err := config.Load()
+	if err != nil {
+		return nil, err
+	}
 
-	return config
+	return config, nil
 }
 
-func Get() *Config {
-	return config
-}
-
-func (c *Config) Load() {
+func (c *Config) Load() error {
 	yamlFile, err := ioutil.ReadFile(c.filepath)
 	if err != nil {
-		log.Fatalf("could not read config file %s, err = %v", c.filepath, err)
+		log.Errorf("could not read config file %s, err = %v", c.filepath, err)
+		return err
 	}
 
 	err = yaml.Unmarshal(yamlFile, &c)
 	if err != nil {
-		log.Fatalf("could not parse config file %s, err = %v", c.filepath, err)
+		log.Errorf("could not parse config file %s, err = %v", c.filepath, err)
+		return err
 	}
+
+	return nil
 }
 
 func (c *Config) GetGroupOrder() map[string]int {
