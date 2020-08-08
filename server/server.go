@@ -11,7 +11,7 @@ import (
 var log = logger.Get()
 
 func Serve(appConfig *config.Config) {
-	conf := &httpConfig{
+	conf := &httpState{
 		playlists: &m3u.Streams{},
 		lock:      false,
 		appConfig: appConfig,
@@ -26,13 +26,14 @@ func Serve(appConfig *config.Config) {
 
 	log.Info("Starting server")
 	http.Handle("/playlist.m3u", httpHandler{conf, getPlaylist})
+	http.Handle("/epg.xml", httpHandler{conf, getEpg})
 	http.Handle("/update", httpHandler{conf, postUpdate})
 
 	server := &http.Server{Addr: appConfig.Core.ServerListen}
 	log.Fatal(server.ListenAndServe())
 }
 
-func scheduleJob(conf *httpConfig, schedule string) {
+func scheduleJob(conf *httpState, schedule string) {
 	conf.crontab.MustAddJob(schedule, func() {
 		updatePlaylist(conf)
 	})

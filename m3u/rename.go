@@ -2,14 +2,24 @@ package m3u
 
 import (
 	"github.com/hoshsadiq/m3ufilter/config"
+	"github.com/hoshsadiq/m3ufilter/m3u/xmltv"
+	"regexp"
+	"strings"
 )
 
-func setSegmentValues(ms *Stream, setters []*config.Setter) {
+func setSegmentValues(ms *Stream, epgChannel *xmltv.Channel, setters []*config.Setter) {
 	var newValue string
 	var err error
 
+	ms.meta.country = findCountry(ms)
+	ms.meta.definition = findDefinition(ms)
+	ms.meta.canonicalName = canonicaliseName(ms.Name)
+	ms.meta.originalName = ms.Name
+	ms.meta.originalId = ms.Id
+	ms.meta.epgChannel = epgChannel
+
 	for _, setter := range setters {
-		if shouldIncludeStream(ms, setter.Filters, false) {
+		if shouldIncludeStream(ms, setter.Filters, config.CheckStreams{Enabled: false}) {
 			if setter.Name != "" {
 				newValue, err = evaluateStr(ms, setter.Name)
 				if err != nil {
@@ -22,65 +32,134 @@ func setSegmentValues(ms *Stream, setters []*config.Setter) {
 				ms.Name = newValue
 			}
 
-			if setter.Attributes.Id != "" {
-				newValue, err = evaluateStr(ms, setter.Attributes.Id)
+			if setter.Id != "" {
+				newValue, err = evaluateStr(ms, setter.Id)
 				if err != nil {
 					log.Errorln(err)
 				}
 				if newValue != ms.Id {
-					log.Tracef("id %s replaced with %s; expr = %v", ms.Id, newValue, setter.Attributes.Id)
+					log.Tracef("id %s replaced with %s; expr = %v", ms.Id, newValue, setter.Id)
 				}
 
 				ms.Id = newValue
+
+				// todo if we change the id, we need to accommodate the epg as well
 			}
 
-			if setter.Attributes.Shift != "" {
-				newValue, err = evaluateStr(ms, setter.Attributes.Shift)
+			if setter.Shift != "" {
+				newValue, err = evaluateStr(ms, setter.Shift)
 				if err != nil {
 					log.Errorln(err)
 				}
 				if newValue != ms.Shift {
-					log.Tracef("id %s replaced with %s; expr = %v", ms.Shift, newValue, setter.Attributes.Shift)
+					log.Tracef("shift %s replaced with %s; expr = %v", ms.Shift, newValue, setter.Shift)
 				}
 
 				ms.Shift = newValue
 			}
 
-			if setter.Attributes.Logo != "" {
-				newValue, err = evaluateStr(ms, setter.Attributes.Logo)
+			if setter.Logo != "" {
+				newValue, err = evaluateStr(ms, setter.Logo)
 				if err != nil {
 					log.Errorln(err)
 				}
 				if newValue != ms.Logo {
-					log.Tracef("title %s replaced with %s; expr = %v", ms.Logo, newValue, setter.Attributes.Logo)
+					log.Tracef("logo %s replaced with %s; expr = %v", ms.Logo, newValue, setter.Logo)
 				}
 
 				ms.Logo = newValue
 			}
 
-			if setter.Attributes.Group != "" {
-				newValue, err = evaluateStr(ms, setter.Attributes.Group)
+			if setter.Group != "" {
+				newValue, err = evaluateStr(ms, setter.Group)
 				if err != nil {
 					log.Errorln(err)
 				}
 				if newValue != ms.Group {
-					log.Tracef("title %s replaced with %s; expr = %v", ms.Group, newValue, setter.Attributes.Group)
+					log.Tracef("group %s replaced with %s; expr = %v", ms.Group, newValue, setter.Group)
 				}
 
 				ms.Group = newValue
 			}
 
-			if setter.Attributes.ChNo != "" {
-				newValue, err = evaluateStr(ms, setter.Attributes.ChNo)
+			if setter.ChNo != "" {
+				newValue, err = evaluateStr(ms, setter.ChNo)
 				if err != nil {
 					log.Errorln(err)
 				}
 				if newValue != ms.ChNo {
-					log.Tracef("title %s replaced with %s; expr = %v", ms.ChNo, newValue, setter.Attributes.ChNo)
+					log.Tracef("chno %s replaced with %s; expr = %v", ms.ChNo, newValue, setter.ChNo)
 				}
 
 				ms.ChNo = newValue
 			}
 		}
 	}
+}
+
+func addDisplayNameToChannel(epgChannel *xmltv.Channel, newValue string) {
+	shouldAdd := true
+	for _, dn := range epgChannel.DisplayNames {
+		if dn.Value == newValue {
+			shouldAdd = false
+			break
+		}
+	}
+
+	if shouldAdd {
+		epgChannel.DisplayNames = append(epgChannel.DisplayNames, xmltv.DisplayName{Value: newValue})
+	}
+}
+
+func findCountry(stream *Stream) string {
+	if stream.Id != "" && strings.Count(stream.Id, ".") == 1 {
+		return strings.ToUpper(strings.Split(stream.Id, ".")[1])
+	}
+
+	regex := `(?i)\b(` + countries + `)\b`
+	r := regexp.MustCompile(regex)
+	matches := r.FindStringSubmatch(stream.Name)
+	if matches != nil {
+		country := strings.ToUpper(matches[0])
+
+		if val, ok := countryOverrides[country]; ok {
+			country = val
+		}
+
+		return country
+	}
+
+	return ""
+}
+
+func findDefinition(stream *Stream) string {
+	regex := `(?i)\b(` + definitions + `)\b`
+	r := regexp.MustCompile(regex)
+	matches := r.FindStringSubmatch(stream.Name)
+	if matches != nil {
+		definition := strings.ToUpper(matches[0])
+		if val, ok := definitionOverrides[definition]; ok {
+			definition = val
+		}
+
+		return definition
+	}
+
+	return ""
+}
+
+func canonicaliseName(name string) string {
+	name = strings.Replace(name, ":", "", -1)
+	name = strings.Replace(name, "|", "", -1)
+	name = regexWordCallback(name, countries, removeWord)
+	name = regexWordCallback(name, definitions, removeWord)
+	name = regexWordCallback(name, "TV", removeWord)
+	// todo this still isn't correct
+	//if !cache.Regexp("(?i)^Channel \\d+$").Match([]byte(name)) {
+	//	name = regexWordCallback(name, "Channel", removeWord)
+	//}
+
+	name = strings.Title(name)
+	name = strings.ToLower(name)
+	return strings.TrimSpace(name)
 }

@@ -1,47 +1,105 @@
 package config
 
 import (
+	"github.com/hoshsadiq/m3ufilter/logger"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
-	"log"
 )
 
+var log = logger.Get()
+
+type EpgProvider struct {
+	Uri string
+}
+
 type Config struct {
-	filepath  string
-	Core      *Core
-	Providers []*Provider
+	filepath     string
+	Core         *Core
+	Providers    []*Provider
+	EpgProviders []*EpgProvider `yaml:"epg_providers"`
+}
+
+type Canonicalise struct {
+	Enable         bool
+	DefaultCountry string `yaml:"default_country"`
 }
 
 type Core struct {
-	ServerListen     string `yaml:"server_listen"`
-	AutoReloadConfig bool   `yaml:"auto_reload_config"`
-	Output           string
-	UpdateSchedule   string   `yaml:"update_schedule"`
-	GroupOrder       []string `yaml:"group_order"`
+	ServerListen         string `yaml:"server_listen"`
+	AutoReloadConfig     bool   `yaml:"auto_reload_config"`
+	Output               string
+	UpdateSchedule       string       `yaml:"update_schedule"`
+	Canonicalise         Canonicalise `yaml:"canonicalise"`
+	GroupOrder           []string     `yaml:"group_order"`
+	PrettyOutputXml      bool
+	HttpTimeout          uint8 `yaml:"http_timeout"` // in seconds
+	HttpMaxRetryAttempts int   `yaml:"http_max_retry_attempts"`
 
 	groupOrderMap map[string]int
 }
 
+type CheckStreamsAction string
+
+const (
+	InvalidStreamRemove CheckStreamsAction = "remove"
+	InvalidStreamNoop                      = "noop"
+)
+
+type CheckStreams struct {
+	Enabled bool
+	Method  string
+	Action  CheckStreamsAction
+}
+
+func (c *CheckStreams) UnmarshalYAML(unmarshal func(interface{}) error) (err error) {
+	// first we try the old mechanism for backwards compatibility
+	err = unmarshal(&c.Enabled)
+	if err == nil {
+		log.Warnf("using a boolean value for provider.check_streams is deprecated, this will be removed in the future. Please upgrade to new method. See the docs for information.")
+		c.Method = "head"
+		c.Action = "remove"
+		return
+	}
+
+	cs := struct {
+		Enabled bool
+		Method  string
+		Action  CheckStreamsAction
+	}{
+		Enabled: false,
+		Action:  "remove",
+		Method:  "head",
+	}
+
+	err = unmarshal(&cs)
+	if err != nil {
+		return err
+	}
+
+	c.Enabled = cs.Enabled
+	c.Action = cs.Action
+	c.Method = cs.Method
+
+	return
+}
+
 type Provider struct {
 	Uri               string
-	IgnoreParseErrors bool `yaml:"ignore_parse_errors"`
-	CheckStreams      bool `yaml:"check_streams"`
+	IgnoreParseErrors bool         `yaml:"ignore_parse_errors"`
+	CheckStreams      CheckStreams `yaml:"check_streams"`
 	Filters           []string
 	Setters           []*Setter
 }
 
-type Attributes struct {
-	ChNo  string `yaml:"chno"`
-	Id    string `yaml:"tvg-id"`
-	Logo  string `yaml:"tvg-logo"`
-	Group string `yaml:"group-title"`
-	Shift string `yaml:"tvg-shift"`
-}
-
 type Setter struct {
-	Name       string
-	Attributes Attributes
-	Filters    []string
+	ChNo  string `yaml:"chno"`
+	Name  string
+	Id    string
+	Logo  string
+	Group string
+	Shift string
+
+	Filters []string
 }
 
 type Replacement struct {
@@ -56,35 +114,44 @@ type Replacer struct {
 
 var config *Config
 
-func New(filepath string) *Config {
+func New(filepath string) (*Config, error) {
 	config = &Config{
 		filepath: filepath,
 		Core: &Core{
-			AutoReloadConfig: true,
-			UpdateSchedule:   "* */24 * * *",
-			Output:           "m3u",
+			AutoReloadConfig:     true,
+			UpdateSchedule:       "* */24 * * *",
+			Output:               "m3u",
+			HttpTimeout:          60,
+			HttpMaxRetryAttempts: 5,
+			Canonicalise: Canonicalise{
+				Enable:         true,
+				DefaultCountry: "uk",
+			},
 		},
 	}
 
-	config.Load()
+	err := config.Load()
+	if err != nil {
+		return nil, err
+	}
 
-	return config
+	return config, nil
 }
 
-func Get() *Config {
-	return config
-}
-
-func (c *Config) Load() {
+func (c *Config) Load() error {
 	yamlFile, err := ioutil.ReadFile(c.filepath)
 	if err != nil {
-		log.Fatalf("could not read config file %s, err = %v", c.filepath, err)
+		log.Errorf("could not read config file %s, err = %v", c.filepath, err)
+		return err
 	}
 
-	err = yaml.Unmarshal([]byte(yamlFile), &c)
+	err = yaml.Unmarshal(yamlFile, &c)
 	if err != nil {
-		log.Fatalf("could not parse config file %s, err = %v", c.filepath, err)
+		log.Errorf("could not parse config file %s, err = %v", c.filepath, err)
+		return err
 	}
+
+	return nil
 }
 
 func (c *Config) GetGroupOrder() map[string]int {

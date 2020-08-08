@@ -3,20 +3,22 @@ package server
 import (
 	"github.com/hoshsadiq/m3ufilter/config"
 	"github.com/hoshsadiq/m3ufilter/m3u"
+	"github.com/hoshsadiq/m3ufilter/m3u/xmltv"
 	"github.com/mileusna/crontab"
 	"net/http"
 )
 
-type httpConfig struct {
+type httpState struct {
 	appConfig *config.Config
 	playlists *m3u.Streams
 	lock      bool
 	crontab   *crontab.Crontab
+	epg       *xmltv.XMLTV
 }
 
 type httpHandler struct {
-	conf     *httpConfig
-	callback func(e *httpConfig, w http.ResponseWriter, r *http.Request) error
+	conf     *httpState
+	callback func(e *httpState, w http.ResponseWriter, r *http.Request) error
 }
 
 func (h httpHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {

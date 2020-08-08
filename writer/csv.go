@@ -35,7 +35,7 @@ func printPlaylist(pl *m3u.Stream, w *csv.Writer) {
 		pl.CUID,
 		pl.Id,
 		pl.Group,
-		pl.Name,
+		pl.GetName(),
 		pl.Duration,
 		pl.Logo,
 		pl.Uri,

@@ -3,16 +3,20 @@ package config
 import (
 	"fmt"
 	"os"
+	"strings"
 )
 
 // all these are set at compile time
 var (
-	Version   = ""
-	GitCommit = ""
-	BuildDate = ""
-	GoVersion = ""
-	Platform  = ""
+	Version   string
+	GitCommit string
+	BuildDate string
+	GoVersion string
+	Platform  string
 )
+
+var epgGeneratorName = "M3U Filter"
+var epgGeneratorUrl = "" // todo actually we want to retrieve this from http package
 
 func ShowVersion() {
 	fmt.Printf("Version: %s\n", Version)
@@ -21,4 +25,11 @@ func ShowVersion() {
 	fmt.Printf("GoVersion: %s\n", GoVersion)
 	fmt.Printf("Platform: %s\n", Platform)
 	os.Exit(0)
+}
+
+func EpgGeneratorName() string {
+	return strings.TrimSpace(fmt.Sprintf("%s %s", epgGeneratorName, Version))
+}
+func EpgGeneratorUrl() string {
+	return epgGeneratorUrl
 }

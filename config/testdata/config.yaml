@@ -22,15 +22,5 @@ providers:
 
     setters:
       - name: replace(Name, " +", " ")
-      - Group: Family/Kids
-        filters:
-          - match(Group, "Kids")
-      - name: replace(Name, "^Sometoon Network", "SN")
-        filters:
-          - match(Name, "^Sometoon Network")
-      - id: =bbc.us
-        shift: =+3
-        filters:
-          - Name == "BBC America" && match(Group, "^US |")
 epg_providers:
   - uri: file://myepg.xml

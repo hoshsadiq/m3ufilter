@@ -7,6 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/hoshsadiq/m3ufilter/config"
+	"github.com/hoshsadiq/m3ufilter/m3u/filter"
+	"github.com/hoshsadiq/m3ufilter/m3u/xmltv"
 	"io"
 	"strings"
 	"time"
@@ -31,11 +33,31 @@ func (s Streams) Less(i, j int) bool {
 		return false
 	}
 
+	if iOrder == jOrder {
+		return strings.Compare(s[i].meta.canonicalName, s[j].meta.canonicalName) < 0
+	}
+
 	return iOrder < jOrder
 }
 
 func (s Streams) Swap(i, j int) {
 	s[i], s[j] = s[j], s[i]
+}
+
+type streamMeta struct {
+	originalName string
+	originalId   string
+
+	canonicalName string
+
+	definition string
+	country    string
+
+	showCountry    bool
+	showDefinition bool
+
+	epgChannel *xmltv.Channel
+	available  bool
 }
 
 func GetMD5Hash(text string) string {
@@ -57,9 +79,24 @@ type Stream struct {
 	Shift   string `yaml:"tvg-shift"`
 	Logo    string `yaml:"tvg-logo"`
 	Group   string `yaml:"group-title"`
+
+	meta streamMeta
 }
 
-func decode(conf *config.Config, reader io.Reader, providerConfig *config.Provider) (Streams, error) {
+func (s Stream) GetName() string {
+	name := s.Name
+	if s.meta.showCountry {
+		name += " " + s.meta.country
+	}
+	if s.meta.showDefinition {
+		name += " " + s.meta.definition
+	}
+
+	return name
+}
+
+// todo we can get rid of config as an argument by utilising some sort of state instead.
+func decode(conf *config.Config, reader io.Reader, providerConfig *config.Provider, epg *xmltv.XMLTV) (Streams, error) {
 	buf := new(bytes.Buffer)
 	_, err := buf.ReadFrom(reader)
 	if err != nil {
@@ -69,15 +106,19 @@ func decode(conf *config.Config, reader io.Reader, providerConfig *config.Provid
 
 	groupOrder = conf.GetGroupOrder()
 
+	var extinfLine string
+	var urlLine string
 	var eof bool
+	var epgChannel *xmltv.Channel
 	streams := Streams{}
 
 	lines := 0
 	start := time.Now()
 	for !eof {
-		var extinfLine string
-		var urlLine string
+		extinfLine = ""
+		urlLine = ""
 
+		// todo we need to support additional tags - https://github.com/kodi-pvr/pvr.iptvsimple#supported-m3u-and-xmltv-elements
 		for !eof && !strings.HasPrefix(extinfLine, "#EXTINF:") {
 			extinfLine, eof = getLine(buf)
 		}
@@ -103,15 +144,55 @@ func decode(conf *config.Config, reader io.Reader, providerConfig *config.Provid
 			continue
 		}
 
-		setSegmentValues(stream, providerConfig.Setters)
+		if epg != nil {
+			epgChannel = getEpgChannel(stream, epg)
+		}
+
+		setSegmentValues(stream, epgChannel, providerConfig.Setters)
 
 		streams = append(streams, stream)
 	}
-	end := time.Since(start).Truncate(time.Duration(time.Millisecond))
+	end := time.Since(start).Truncate(time.Millisecond)
 
 	log.Infof("Matched %d valid streams out of %d. Took %s", len(streams), lines, end)
 
 	return streams, nil
+}
+
+func getEpgChannel(stream *Stream, xmltv *xmltv.XMLTV) *xmltv.Channel {
+	var convertedDisplayName string
+	var displayNameLower string
+
+	streamTvgIdLower := strings.ToLower(stream.Id)
+	streamTvgNameLower := strings.ToLower(stream.TvgName)
+	streamChannelName := strings.ToLower(stream.Name)
+
+	for _, xmltvChannel := range xmltv.Channels {
+		if streamTvgIdLower == strings.ToLower(xmltvChannel.ID) {
+			return xmltvChannel
+		}
+	}
+	for _, xmltvChannel := range xmltv.Channels {
+		for _, displayName := range xmltvChannel.DisplayNames {
+			displayNameLower = strings.ToLower(displayName.Value)
+			convertedDisplayName = strings.Replace(displayNameLower, " ", "_", -1)
+
+			if convertedDisplayName == streamTvgNameLower || displayNameLower == streamTvgNameLower {
+				return xmltvChannel
+			}
+		}
+	}
+	for _, xmltvChannel := range xmltv.Channels {
+		for _, displayName := range xmltvChannel.DisplayNames {
+			displayNameLower = strings.ToLower(displayName.Value)
+
+			if streamChannelName == displayNameLower {
+				return xmltvChannel
+			}
+		}
+	}
+
+	return nil
 }
 
 func getLine(buf *bytes.Buffer) (string, bool) {
@@ -123,7 +204,7 @@ func getLine(buf *bytes.Buffer) (string, bool) {
 		if err == io.EOF {
 			eof = true
 		} else if err != nil {
-			panic("something went wrong")
+			log.Fatalf("unknown error: %v", err)
 		}
 
 		if len(line) < 1 || line == "\r" {
@@ -134,8 +215,8 @@ func getLine(buf *bytes.Buffer) (string, bool) {
 	return line, eof
 }
 
-func parseExtinfLine(attrline string, urlLine string) (*Stream, error) {
-	attrline = strings.TrimSpace(attrline)
+func parseExtinfLine(attrLine string, urlLine string) (*Stream, error) {
+	attrLine = strings.TrimSpace(attrLine)
 	urlLine = strings.TrimSpace(urlLine)
 
 	stream := &Stream{Uri: urlLine}
@@ -146,7 +227,7 @@ func parseExtinfLine(attrline string, urlLine string) (*Stream, error) {
 	value := ""
 	quote := "\""
 	escapeNext := false
-	for i, c := range attrline {
+	for i, c := range attrLine {
 		if i < 8 {
 			continue
 		}
@@ -183,7 +264,7 @@ func parseExtinfLine(attrline string, urlLine string) (*Stream, error) {
 				case "tvg-name":
 					stream.TvgName = value
 				case "tvg-logo":
-					stream.Logo = value
+					stream.Logo = filter.EnsureUniqueUrls(value)
 				case "group-title":
 					stream.Group = value
 				}
@@ -200,7 +281,7 @@ func parseExtinfLine(attrline string, urlLine string) (*Stream, error) {
 
 		if c == '"' || c == '\'' {
 			if state != "value" {
-				return nil, errors.New(fmt.Sprintf("Unexpected character '%s' found, expected '=' for key %s on position %d in line: %s", string(c), key, i, attrline))
+				return nil, errors.New(fmt.Sprintf("Unexpected character '%s' found, expected '=' for key %s on position %d in line: %s", string(c), key, i, attrLine))
 			}
 			state = "quotes"
 			quote = string(c)
@@ -238,11 +319,11 @@ func parseExtinfLine(attrline string, urlLine string) (*Stream, error) {
 	}
 
 	if state == "keyname" && value == "" {
-		return nil, errors.New(fmt.Sprintf("Key %s started but no value assigned on line: %s", key, attrline))
+		return nil, errors.New(fmt.Sprintf("Key %s started but no value assigned on line: %s", key, attrLine))
 	}
 
 	if state == "quotes" {
-		return nil, errors.New(fmt.Sprintf("Unclosed quote on line: %s", attrline))
+		return nil, errors.New(fmt.Sprintf("Unclosed quote on line: %s", attrLine))
 	}
 
 	stream.Name = strings.TrimSpace(stream.Name)

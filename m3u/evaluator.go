@@ -11,24 +11,25 @@ import (
 var evaluator = goval.NewEvaluator()
 
 func evaluate(ms *Stream, expr string) (result interface{}, err error) {
-	if expr[0] == '=' {
-		return strings.TrimSpace(expr[1:]), nil
-	}
-
-	debug := false
+	var debug bool
 	if expr[0] == '?' {
 		debug = true
 		expr = strings.TrimSpace(expr[1:])
 	}
 
+	if expr[0] == '=' {
+		return strings.TrimSpace(expr[1:]), nil
+	}
+
 	variables := map[string]interface{}{
-		"ChNo":     ms.ChNo,
-		"Id":       ms.Id,
-		"Name":     ms.Name,
-		"Uri":      ms.Uri,
-		"Duration": ms.Duration,
-		"Logo":     ms.Logo,
-		"Group":    ms.Group,
+		"ChNo":      ms.ChNo,
+		"Id":        ms.Id,
+		"Name":      ms.Name,
+		"Uri":       ms.Uri,
+		"Duration":  ms.Duration,
+		"Logo":      ms.Logo,
+		"Group":     ms.Group,
+		"Available": ms.meta.available,
 	}
 
 	expr = cache.Expr(expr)
@@ -72,11 +73,12 @@ func evaluateStr(ms *Stream, expr string) (result string, err error) {
 
 func getEvaluatorFunctions() map[string]goval.ExpressionFunction {
 	return map[string]goval.ExpressionFunction{
-		"strlen":  evaluatorStrlen,
-		"match":   evaluatorMatch,
-		"replace": evaluatorReplace,
-		"tvg_id":  evaluatorToTvgId,
-		"title":   evaluatorTitle,
+		"strlen":      evaluatorStrlen,
+		"match":       evaluatorMatch,
+		"replace":     evaluatorReplace,
+		"tvg_id":      evaluatorToTvgId,
+		"title":       evaluatorTitle,
+		"upper_words": evaluatorUpperWord,
 	}
 }
 
@@ -90,7 +92,7 @@ func evaluatorMatch(args ...interface{}) (interface{}, error) {
 	regexString := args[1].(string)
 
 	re := cache.Regexp(regexString)
-	return (bool)(re.MatchString(subject)), nil
+	return re.MatchString(subject), nil
 }
 func evaluatorReplace(args ...interface{}) (interface{}, error) {
 	subject := args[0].(string)
@@ -98,31 +100,53 @@ func evaluatorReplace(args ...interface{}) (interface{}, error) {
 	replace := args[2].(string)
 
 	re := cache.Regexp(refind)
-	return (string)(re.ReplaceAllString(subject, replace)), nil
+	return re.ReplaceAllString(subject, replace), nil
 }
 func evaluatorToTvgId(args ...interface{}) (interface{}, error) {
 	subject := args[0].(string)
-	re := cache.Regexp(`(?i)\b(SD|HD|FHD)\b`)
-
-	subject = re.ReplaceAllString(subject, "")
+	subject = regexWordCallback(subject, definitions, removeWord)
 
 	subject = strings.Replace(subject, "&", "and", -1)
 	subject = strings.TrimSpace(subject)
 
-	re = cache.Regexp(`[^a-zA-Z0-9]`)
+	re := cache.Regexp(`[^a-zA-Z0-9]`)
 	tvgId := re.ReplaceAllString(subject, "")
 
 	return tvgId, nil
 }
 
 func evaluatorTitle(args ...interface{}) (interface{}, error) {
-	subject := args[0].(string)
-	re := cache.Regexp(`(?i)\b(SD|HD|FHD)\b`)
+	subject := strings.ToLower(args[0].(string))
 
-	subject = re.ReplaceAllStringFunc(subject, func(s string) string {
-		return strings.ToUpper(s)
-	})
+	subject = regexWordCallback(subject, definitions, removeWord)
+	subject = regexWordCallback(subject, countries, removeWord)
 
 	subject = strings.Title(subject)
 	return strings.TrimSpace(subject), nil
+}
+
+func evaluatorUpperWord(args ...interface{}) (interface{}, error) {
+	subject := args[0].(string)
+
+	sargs := make([]string, len(args))
+	for i := range args {
+		sargs[i] = args[i].(string)
+	}
+
+	subject = regexWordCallback(subject, strings.Join(sargs[1:], "|"), strings.ToUpper)
+	return strings.TrimSpace(subject), nil
+}
+
+func regexWordCallback(subject string, word string, callback func(string) string) string {
+	re := cache.Regexp(`(?i)\b(` + word + `)\b`)
+
+	subject = re.ReplaceAllStringFunc(subject, func(s string) string {
+		return callback(s)
+	})
+
+	return subject
+}
+
+func removeWord(s string) string {
+	return ""
 }

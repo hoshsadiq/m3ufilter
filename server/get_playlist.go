@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-func getPlaylist(conf *httpConfig, w http.ResponseWriter, r *http.Request) error {
+func getPlaylist(state *httpState, w http.ResponseWriter, r *http.Request) error {
 	if r.Method != "HEAD" && r.Method != "GET" {
 		logger.Get().Errorf("Method %s is not allowed", r.Method)
 		err := errors.New(http.StatusText(http.StatusMethodNotAllowed))
@@ -16,6 +16,6 @@ func getPlaylist(conf *httpConfig, w http.ResponseWriter, r *http.Request) error
 
 	w.Header().Set("Content-Type", "audio/mpegurl")
 
-	writer.WriteOutput(conf.appConfig.Core.Output, w, *conf.playlists)
+	writer.WriteOutput(state.appConfig.Core.Output, w, *state.playlists)
 	return nil
 }
