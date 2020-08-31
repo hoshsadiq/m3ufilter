@@ -73,12 +73,13 @@ type Stream struct {
 	CUID     string `yaml:"CUID"`
 
 	// these are attributes
-	ChNo    string `yaml:"chno"`
-	Id      string `yaml:"tvg-id"`
-	TvgName string `yaml:"tvg-name"`
-	Shift   string `yaml:"tvg-shift"`
-	Logo    string `yaml:"tvg-logo"`
-	Group   string `yaml:"group-title"`
+	ChNo     string `yaml:"chno"`
+	Id       string `yaml:"tvg-id"`
+	TvgName  string `yaml:"tvg-name"`
+	Shift    string `yaml:"tvg-shift"`
+	Logo     string `yaml:"tvg-logo"`
+	Language string `yaml:"tvg-language"`
+	Group    string `yaml:"group-title"`
 
 	meta streamMeta
 }
@@ -263,6 +264,8 @@ func parseExtinfLine(attrLine string, urlLine string) (*Stream, error) {
 					stream.Shift = value
 				case "tvg-name":
 					stream.TvgName = value
+				case "tvg-language":
+					stream.Language = value
 				case "tvg-logo":
 					stream.Logo = filter.EnsureUniqueUrls(value)
 				case "group-title":

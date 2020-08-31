@@ -28,6 +28,7 @@ func evaluate(ms *Stream, expr string) (result interface{}, err error) {
 		"Uri":       ms.Uri,
 		"Duration":  ms.Duration,
 		"Logo":      ms.Logo,
+		"Language":  ms.Language,
 		"Group":     ms.Group,
 		"Available": ms.meta.available,
 	}
