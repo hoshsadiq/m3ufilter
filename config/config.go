@@ -9,7 +9,8 @@ import (
 var log = logger.Get()
 
 type EpgProvider struct {
-	Uri string
+	Uri              string
+	ChannelIdRenames map[string]string `yaml:"channel_id_renames"` // key = new_id, value = old_id
 }
 
 type Config struct {
@@ -100,16 +101,6 @@ type Setter struct {
 	Shift string
 
 	Filters []string
-}
-
-type Replacement struct {
-	Name       []*Replacer
-	Attributes map[string][]*Replacer
-}
-
-type Replacer struct {
-	Find    string
-	Replace string
 }
 
 var config *Config

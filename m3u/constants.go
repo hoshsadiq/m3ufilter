@@ -2,6 +2,8 @@ package m3u
 
 import "strings"
 
+var stopWords = `VIP|TV|The`
+
 var definitions = `SD|HD|FHD`
 
 var definitionOverrides = map[string]string{

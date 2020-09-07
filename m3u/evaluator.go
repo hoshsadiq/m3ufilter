@@ -80,6 +80,8 @@ func getEvaluatorFunctions() map[string]goval.ExpressionFunction {
 		"tvg_id":      evaluatorToTvgId,
 		"title":       evaluatorTitle,
 		"upper_words": evaluatorUpperWord,
+		"starts_with": evaluatorStartsWith,
+		"ends_with":   evaluatorEndsWith,
 	}
 }
 
@@ -136,6 +138,20 @@ func evaluatorUpperWord(args ...interface{}) (interface{}, error) {
 
 	subject = regexWordCallback(subject, strings.Join(sargs[1:], "|"), strings.ToUpper)
 	return strings.TrimSpace(subject), nil
+}
+
+func evaluatorEndsWith(args ...interface{}) (interface{}, error) {
+	subject := args[0].(string)
+	suffix := args[1].(string)
+
+	return strings.HasSuffix(subject, suffix), nil
+}
+
+func evaluatorStartsWith(args ...interface{}) (interface{}, error) {
+	subject := args[0].(string)
+	prefix := args[1].(string)
+
+	return strings.HasSuffix(subject, prefix), nil
 }
 
 func regexWordCallback(subject string, word string, callback func(string) string) string {
