@@ -141,9 +141,12 @@ func getUri(uri string) (*http.Response, error) {
 }
 
 func getEpg(providers []*config.EpgProvider) (*xmltv.XMLTV, error) {
-	var epg xmltv.XMLTV
+	var epgs = make([]xmltv.XMLTV, len(providers))
+	var newEpg xmltv.XMLTV
+	totalChannels := 0
+	totalProgrammes := 0
 
-	for _, provider := range providers {
+	for i, provider := range providers {
 		resp, err := getUri(provider.Uri)
 		if err != nil {
 			return nil, err
@@ -155,16 +158,28 @@ func getEpg(providers []*config.EpgProvider) (*xmltv.XMLTV, error) {
 			}
 		}()
 
-		err = xmltv.Load(resp.Body, &epg)
+		newEpg = xmltv.XMLTV{}
+		err = xmltv.Load(resp.Body, &newEpg)
 		if err != nil {
 			return nil, err
 		}
+		applyEpgIdRenames(&newEpg, provider.ChannelIdRenames)
+		epgs[i] = newEpg
+		totalChannels += len(newEpg.Channels)
+		totalProgrammes += len(newEpg.Programmes)
 	}
 
-	var channels = make(map[string]*xmltv.Channel, len(epg.Channels))
+	allChannels := make([]*xmltv.Channel, 0, totalChannels)
+	allProgrammes := make([]*xmltv.Programme, 0, totalChannels)
+	for _, epg := range epgs {
+		allChannels = append(allChannels, epg.Channels...)
+		allProgrammes = append(allProgrammes, epg.Programmes...)
+	}
+
+	var channels = make(map[string]*xmltv.Channel, len(allChannels))
 	var nameIdMapping = make(map[string]string)
 
-	for _, c := range epg.Channels {
+	for _, c := range allChannels {
 		channel, ok := channels[c.ID]
 		var found = false
 		if !ok {
@@ -204,7 +219,23 @@ func getEpg(providers []*config.EpgProvider) (*xmltv.XMLTV, error) {
 
 	log.Info("Finished loading EPG")
 
-	return &epg, nil
+	return &xmltv.XMLTV{Programmes: allProgrammes, Channels: allChannels}, nil
+}
+
+func applyEpgIdRenames(epg *xmltv.XMLTV, renames map[string]string) {
+	for newId, oldId := range renames {
+		for _, chann := range epg.Channels {
+			if chann.ID == oldId {
+				chann.ID = newId
+			}
+		}
+
+		for _, programme := range epg.Programmes {
+			if programme.Channel == oldId {
+				programme.Channel = newId
+			}
+		}
+	}
 }
 
 func setMeta(mainCountry string, left *Stream, right *Stream) {

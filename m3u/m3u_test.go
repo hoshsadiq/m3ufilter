@@ -183,7 +183,7 @@ func runTest(path string, t *testing.T, testData simpleTest, ext string, conf *c
 
 	if string(expectedStreams) != string(actualStreams) {
 		t.Logf("Test %s failed.", path)
-		t.Logf("  Expected streans: %s", expectedStreams)
+		t.Logf("  Expected streams: %s", expectedStreams)
 		t.Logf("  Got:              %s", actualStreams)
 		t.Fail()
 	}

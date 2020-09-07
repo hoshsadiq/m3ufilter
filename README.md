@@ -47,9 +47,16 @@ providers:
           - Name == "USA CNN"
           - Name == "CNN"
           - Name == "CNN HD"
+epg_providers:
+  - url: file:///path/to/epg.xml
+    channel_id_renames:
+      replacement: find # key = what to replace it with, value = what to find
+      bbc.uk: "BBC One"
 ```
 
-##### The meaning of the config options are as follows:
+#### The meaning of the config options are as follows:
+
+##### Core config
 - `core.server_listen` (`string`)
 
     If set, this will run as a server, rather a single run. If you want single runs, you can omit this option. See the arguments to specify the output.
@@ -73,6 +80,8 @@ providers:
 - `core.group_order` (`list` of `string`) (experimental)
 
     The order to put the categories in.
+
+##### IPTV providers
 
 - `providers`
 
@@ -137,6 +146,20 @@ providers:
 
     A list of filters to limit this providers setter to. The same logic applies as the above filters method, and thus again, must return true/false. If true, it will run the setters.
 
+##### EPG providers
+
+- `epg_providers`
+
+    This is a list of providers of where to retrieve EPG data from. Each entry in here must be able to retrieve _valid_ XMLTV data. If it unable to decode the full XML, it will skip over it. This is an array (see example above).
+
+- `epg_providers.url` (`string`)
+
+    The URL of where to retrieve the EPG data. This can start with `file://` to retrieve a list from a local file system (this must be an absolute path).
+
+- `epg_providers.channel_id_renames` (`map`)
+
+    This is a key value pair of channel IDs to rename within the XMLTV. This is useful in case the EPG data's channel IDs don't match the channel IDs in the M3U files. This will change the ID.
+
 ##### For filters, name and setters, the following functions are available:
 
 - `strlen(text string) int`
@@ -166,17 +189,30 @@ providers:
 
     Will turn the text in `subject` into a title, by capitalising all words, and also ensures all letters in SD/HD/FHD are capitalised.
 
+- `upper_words(subject string, word string...) string`
+
+    Will turn the text `word` in `subject` into uppercase. Argument `word` can be repeated as multiple times.
+
+- `starts_with(subject string, prefix string...) bool`
+
+    Will return true if the text in `subject` starts with the text in `prefix`.
+
+- `endss_with(subject string, suffix string...) bool`
+
+    Will return true if the text in `subject` ends with the text in `suffix`.
+
 ##### Additionally, the following variables are available:
 
-|variable|content|
-|--------|-------|
-|`ChNo`|The channel number|
-|`Id`|The ID to sync up with XMLTV|
-|`Name`|This is the channel name|
-|`Uri`|The URL for the stream|
-|`Duration`|The duration of the stream, this is usually -1 due to Live TV being being.. well.. live.|
-|`Logo`|The logo (can be either a url or a base64 data string)|
-|`Group`|The group category|
+|variable|content|m3u tag mapping|
+|--------|-------|-------|
+|`ChNo`|The channel number|`tvg-chno`|
+|`Id`|The ID to sync up with XMLTV|`tvg-id`|
+|`Name`|This is the channel name|`tvg-name`|
+|`Uri`|The URL for the stream|The URL (not a tag)|
+|`Duration`|The duration of the stream, this is usually -1 due to Live TV being being.. well.. live.|The duration (not a tag)|
+|`Logo`|The logo (can be either a url or a base64 data string)|`tvg-logo`|
+|`Language`|The language of the stream|`tvg-language`|
+|`Group`|The group category|`group-title`|
 
 ##### Generic expression syntax
 
@@ -222,6 +258,6 @@ The following server endpoints are available for use:
   This is used to force the application to retrieve the latest version of all the providers. This is an asynchronous operation, and will return 204 on success.
 
 ## Future plans
-The idea behind this is to a be one stop shop for generating both xmltv and m3u files from any source.
-This will eventually add support for xml, and will automatically try and match up channels and EPG data should this not exist.
+The idea behind this is to be one stop shop for generating both xmltv and m3u files from any source.
+This will eventually add support for xml, and will automatically try to match up channels and EPG data should this not exist.
 Any other ideas you have? Feel free to raise a ticket.

@@ -11,9 +11,6 @@ func setSegmentValues(ms *Stream, epgChannel *xmltv.Channel, setters []*config.S
 	var newValue string
 	var err error
 
-	ms.meta.country = findCountry(ms)
-	ms.meta.definition = findDefinition(ms)
-	ms.meta.canonicalName = canonicaliseName(ms.Name)
 	ms.meta.originalName = ms.Name
 	ms.meta.originalId = ms.Id
 	ms.meta.epgChannel = epgChannel
@@ -95,6 +92,10 @@ func setSegmentValues(ms *Stream, epgChannel *xmltv.Channel, setters []*config.S
 			}
 		}
 	}
+
+	ms.meta.country = findCountry(ms)
+	ms.meta.definition = findDefinition(ms)
+	ms.meta.canonicalName = canonicaliseName(ms.Name)
 }
 
 func addDisplayNameToChannel(epgChannel *xmltv.Channel, newValue string) {
@@ -112,13 +113,22 @@ func addDisplayNameToChannel(epgChannel *xmltv.Channel, newValue string) {
 }
 
 func findCountry(stream *Stream) string {
-	if stream.Id != "" && strings.Count(stream.Id, ".") == 1 {
-		return strings.ToUpper(strings.Split(stream.Id, ".")[1])
+	var country string
+	country = attemptGetCountry(stream.Id, stream.Name)
+	if country == "" {
+		country = attemptGetCountry(stream.meta.originalId, stream.meta.originalName)
+	}
+	return country
+}
+
+func attemptGetCountry(id, name string) string {
+	if id != "" && strings.Count(id, ".") == 1 {
+		return strings.ToUpper(strings.Split(id, ".")[1])
 	}
 
 	regex := `(?i)\b(` + countries + `)\b`
 	r := regexp.MustCompile(regex)
-	matches := r.FindStringSubmatch(stream.Name)
+	matches := r.FindStringSubmatch(name)
 	if matches != nil {
 		country := strings.ToUpper(matches[0])
 
@@ -133,9 +143,19 @@ func findCountry(stream *Stream) string {
 }
 
 func findDefinition(stream *Stream) string {
+	var definition string
+	definition = attemptFindDefinition(stream.Name)
+	if definition == "" {
+		definition = attemptFindDefinition(stream.meta.originalName)
+	}
+
+	return definition
+}
+
+func attemptFindDefinition(name string) string {
 	regex := `(?i)\b(` + definitions + `)\b`
 	r := regexp.MustCompile(regex)
-	matches := r.FindStringSubmatch(stream.Name)
+	matches := r.FindStringSubmatch(name)
 	if matches != nil {
 		definition := strings.ToUpper(matches[0])
 		if val, ok := definitionOverrides[definition]; ok {
@@ -153,13 +173,14 @@ func canonicaliseName(name string) string {
 	name = strings.Replace(name, "|", "", -1)
 	name = regexWordCallback(name, countries, removeWord)
 	name = regexWordCallback(name, definitions, removeWord)
-	name = regexWordCallback(name, "TV", removeWord)
+	name = regexWordCallback(name, stopWords, removeWord)
 	// todo this still isn't correct
 	//if !cache.Regexp("(?i)^Channel \\d+$").Match([]byte(name)) {
 	//	name = regexWordCallback(name, "Channel", removeWord)
 	//}
 
-	name = strings.Title(name)
+	name = regexWordCallback(name, " +", func(s string) string { return " " })
 	name = strings.ToLower(name)
+	name = strings.Title(name)
 	return strings.TrimSpace(name)
 }
