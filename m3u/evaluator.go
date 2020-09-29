@@ -151,7 +151,7 @@ func evaluatorStartsWith(args ...interface{}) (interface{}, error) {
 	subject := args[0].(string)
 	prefix := args[1].(string)
 
-	return strings.HasSuffix(subject, prefix), nil
+	return strings.HasPrefix(subject, prefix), nil
 }
 
 func regexWordCallback(subject string, word string, callback func(string) string) string {
