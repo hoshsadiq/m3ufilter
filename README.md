@@ -48,7 +48,7 @@ providers:
           - Name == "CNN"
           - Name == "CNN HD"
 epg_providers:
-  - url: file:///path/to/epg.xml
+  - uri: file:///path/to/epg.xml
     channel_id_renames:
       replacement: find # key = what to replace it with, value = what to find
       bbc.uk: "BBC One"
@@ -87,7 +87,7 @@ epg_providers:
 
     This is a list of providers of where to retrieve M3U lists. This is an array (see example above).
 
-- `providers.url` (`string`)
+- `providers.uri` (`string`)
 
     The URL of where to retrieve the M3U list. This can start with `file://` to retrieve a list from a local file system (this must be an absolute path).
 
@@ -152,7 +152,7 @@ epg_providers:
 
     This is a list of providers of where to retrieve EPG data from. Each entry in here must be able to retrieve _valid_ XMLTV data. If it unable to decode the full XML, it will skip over it. This is an array (see example above).
 
-- `epg_providers.url` (`string`)
+- `epg_providers.uri` (`string`)
 
     The URL of where to retrieve the EPG data. This can start with `file://` to retrieve a list from a local file system (this must be an absolute path).
 
