@@ -10,7 +10,7 @@ var log = logger.Get()
 
 type ChannelIdRename struct {
 	From string
-	To string
+	To   string
 }
 
 type EpgProvider struct {
@@ -26,10 +26,10 @@ type Config struct {
 }
 
 type Core struct {
-	ServerListen         string `yaml:"server_listen"`
-	AutoReloadConfig     bool   `yaml:"auto_reload_config"`
-	UpdateSchedule       string       `yaml:"update_schedule"`
-	GroupOrder           []string     `yaml:"group_order"`
+	ServerListen         string   `yaml:"server_listen"`
+	AutoReloadConfig     bool     `yaml:"auto_reload_config"`
+	UpdateSchedule       string   `yaml:"update_schedule"`
+	GroupOrder           []string `yaml:"group_order"`
 	PrettyOutputXml      bool
 	HttpTimeout          uint8 `yaml:"http_timeout"` // in seconds
 	HttpMaxRetryAttempts int   `yaml:"http_max_retry_attempts"`
@@ -83,9 +83,9 @@ func (c *CheckStreams) UnmarshalYAML(unmarshal func(interface{}) error) (err err
 }
 
 type Provider struct {
-	Uri               string
-	Csv               string
-	CheckStreams      CheckStreams `yaml:"check_streams"`
+	Uri          string
+	Csv          string
+	CheckStreams CheckStreams `yaml:"check_streams"`
 }
 
 var config *Config
