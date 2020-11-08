@@ -1,10 +1,11 @@
 provider:
   uri: string
-  ignore_parse_errors: false
   filters:
     - Language == "English"
 
-  setters: []
+csv_data:
+  BBC One: {}
+  Channel 4: {}
 
 expected_error: "__no_error__"
 streams:

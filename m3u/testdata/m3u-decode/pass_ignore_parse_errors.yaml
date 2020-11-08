@@ -1,8 +1,5 @@
 provider:
   uri: string
-  ignore_parse_errors: true
-  filters: []
-  setters: []
 
 expected_error: "__no_error__"
 streams:

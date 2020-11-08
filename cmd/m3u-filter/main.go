@@ -5,6 +5,7 @@ import (
 	"github.com/hoshsadiq/m3ufilter/config"
 	"github.com/hoshsadiq/m3ufilter/logger"
 	"github.com/hoshsadiq/m3ufilter/m3u"
+	"github.com/hoshsadiq/m3ufilter/net"
 	"github.com/hoshsadiq/m3ufilter/server"
 	"github.com/hoshsadiq/m3ufilter/writer"
 	"github.com/mitchellh/go-homedir"
@@ -22,6 +23,7 @@ func main() {
 	configFile := flag.String("config", "~/.m3u.conf", "Config file location")
 	playlistOutput := flag.String("playlist", "", "Where to output the playlist data. Ignored when using server options in the config. Defaults to stdout")
 	logOutput := flag.String("log", "", "Where to output logs. Defaults to stderr")
+	generatingCsv := flag.Bool("csv", false, "Generate CSV instead of processing the M3U")
 	versionFlag := flag.Bool("version", false, "show version and exit")
 	flag.Parse()
 
@@ -35,10 +37,10 @@ func main() {
 	}
 
 	logger.Setup(appPath)
-	run(path, fd(*playlistOutput, false), fd(*logOutput, true))
+	run(path, *generatingCsv, fd(*playlistOutput, false), fd(*logOutput, true))
 }
 
-func run(configFilename string, stdout *os.File, stderr *os.File) {
+func run(configFilename string, generatingCsv bool, stdout *os.File, stderr *os.File) {
 	log := logger.Get()
 	log.SetOutput(stderr)
 
@@ -47,12 +49,18 @@ func run(configFilename string, stdout *os.File, stderr *os.File) {
 		os.Exit(1)
 	}
 
-	m3u.InitClient(conf)
-	if conf.Core.ServerListen != "" {
+	net.InitClient(conf)
+	if generatingCsv {
+		playlist, _, _ := m3u.ProcessConfig(conf, generatingCsv)
+		writer.WriteCsv(stdout, playlist)
+		return
+	}
+
+	if !generatingCsv && conf.Core.ServerListen != "" {
 		server.Serve(conf)
 	} else {
-		playlist, _ /*todo epg*/, _ := m3u.ProcessConfig(conf)
-		writer.WriteOutput(conf.Core.Output, stdout, playlist)
+		playlist, _ /*todo epg*/, _ := m3u.ProcessConfig(conf, generatingCsv)
+		writer.WriteM3U(stdout, playlist)
 	}
 }
 

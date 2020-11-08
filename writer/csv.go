@@ -1,23 +1,26 @@
 package writer
 
 import (
-	"encoding/csv"
+	csvw "encoding/csv"
 	"github.com/hoshsadiq/m3ufilter/m3u"
+	"github.com/hoshsadiq/m3ufilter/m3u/csv"
 	"io"
 )
 
 var csvHeaders = []string{
-	"cuid",
-	"tvg-id",
-	"group-title",
-	"tvg-name",
-	"duration",
-	"tvg-logo",
-	"uri",
+	csv.HeaderCuid,
+	csv.HeaderSearchName,
+	csv.HeaderNumber,
+	csv.HeaderId,
+	csv.HeaderGroup,
+	csv.HeaderName,
+	csv.HeaderShift,
+	csv.HeaderLogo,
+	csv.HeaderUri,
 }
 
-func writeCsv(w io.Writer, streams []*m3u.Stream) {
-	writer := csv.NewWriter(w)
+func WriteCsv(w io.Writer, streams m3u.Streams) {
+	writer := csvw.NewWriter(w)
 	defer writer.Flush()
 
 	err := writer.Write(csvHeaders)
@@ -30,13 +33,15 @@ func writeCsv(w io.Writer, streams []*m3u.Stream) {
 	}
 }
 
-func printPlaylist(pl *m3u.Stream, w *csv.Writer) {
+func printPlaylist(pl *m3u.Stream, w *csvw.Writer) {
 	row := []string{
 		pl.CUID,
+		pl.Name,
+		pl.ChNo,
 		pl.Id,
 		pl.Group,
-		pl.GetName(),
-		pl.Duration,
+		pl.Name,
+		pl.Shift,
 		pl.Logo,
 		pl.Uri,
 	}

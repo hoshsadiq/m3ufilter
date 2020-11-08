@@ -1,101 +1,43 @@
 package m3u
 
 import (
-	"github.com/hoshsadiq/m3ufilter/config"
+	"github.com/hoshsadiq/m3ufilter/m3u/csv"
 	"github.com/hoshsadiq/m3ufilter/m3u/xmltv"
 	"regexp"
 	"strings"
 )
 
-func setSegmentValues(ms *Stream, epgChannel *xmltv.Channel, setters []*config.Setter) {
-	var newValue string
-	var err error
-
+func setSegmentValues(ms *Stream, streamData *csv.StreamData, epgChannel *xmltv.Channel) {
 	ms.meta.originalName = ms.Name
 	ms.meta.originalId = ms.Id
 	ms.meta.epgChannel = epgChannel
 
-	for _, setter := range setters {
-		if shouldIncludeStream(ms, setter.Filters, config.CheckStreams{Enabled: false}) {
-			if setter.Name != "" {
-				newValue, err = evaluateStr(ms, setter.Name)
-				if err != nil {
-					log.Errorln(err)
-				}
-				if newValue != ms.Name {
-					log.Tracef("title %s replaced with %s; expr = %v", ms.Name, newValue, setter.Name)
-				}
-
-				ms.Name = newValue
-			}
-
-			if setter.Id != "" {
-				newValue, err = evaluateStr(ms, setter.Id)
-				if err != nil {
-					log.Errorln(err)
-				}
-				if newValue != ms.Id {
-					log.Tracef("id %s replaced with %s; expr = %v", ms.Id, newValue, setter.Id)
-				}
-
-				ms.Id = newValue
-
-				// todo if we change the id, we need to accommodate the epg as well
-			}
-
-			if setter.Shift != "" {
-				newValue, err = evaluateStr(ms, setter.Shift)
-				if err != nil {
-					log.Errorln(err)
-				}
-				if newValue != ms.Shift {
-					log.Tracef("shift %s replaced with %s; expr = %v", ms.Shift, newValue, setter.Shift)
-				}
-
-				ms.Shift = newValue
-			}
-
-			if setter.Logo != "" {
-				newValue, err = evaluateStr(ms, setter.Logo)
-				if err != nil {
-					log.Errorln(err)
-				}
-				if newValue != ms.Logo {
-					log.Tracef("logo %s replaced with %s; expr = %v", ms.Logo, newValue, setter.Logo)
-				}
-
-				ms.Logo = newValue
-			}
-
-			if setter.Group != "" {
-				newValue, err = evaluateStr(ms, setter.Group)
-				if err != nil {
-					log.Errorln(err)
-				}
-				if newValue != ms.Group {
-					log.Tracef("group %s replaced with %s; expr = %v", ms.Group, newValue, setter.Group)
-				}
-
-				ms.Group = newValue
-			}
-
-			if setter.ChNo != "" {
-				newValue, err = evaluateStr(ms, setter.ChNo)
-				if err != nil {
-					log.Errorln(err)
-				}
-				if newValue != ms.ChNo {
-					log.Tracef("chno %s replaced with %s; expr = %v", ms.ChNo, newValue, setter.ChNo)
-				}
-
-				ms.ChNo = newValue
-			}
-		}
+	if streamData != nil {
+		ms.Id = replaceField("id", ms.Id, streamData.Id) // todo if we change the id, we need to accommodate the epg as well
+		ms.Name = replaceField("name", ms.Name, streamData.Name)
+		ms.Shift = replaceField("shift", ms.Shift, streamData.Shift)
+		ms.Logo = replaceField("logo", ms.Logo, streamData.Logo)
+		ms.Group = replaceField("group", ms.Group, streamData.Group)
+		ms.ChNo = replaceField("chno", ms.ChNo, streamData.ChNo)
 	}
 
 	ms.meta.country = findCountry(ms)
 	ms.meta.definition = findDefinition(ms)
 	ms.meta.canonicalName = canonicaliseName(ms.Name)
+}
+
+func replaceField(name string, oldValue string, newValue string) string {
+	if strings.ToLower(newValue) == "clear" {
+		log.Tracef("clearing field '%s'", name)
+		return ""
+	}
+
+	if newValue != "" && newValue != oldValue {
+		log.Tracef("%s '%s' replaced with '%s'", name, oldValue, newValue)
+		return newValue
+	}
+
+	return oldValue
 }
 
 func addDisplayNameToChannel(epgChannel *xmltv.Channel, newValue string) {

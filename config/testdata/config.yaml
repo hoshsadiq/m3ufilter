@@ -1,26 +1,10 @@
 core:
-  output: m3u
   auto_reload_config: true
-  canonicalise:
-    enable: true
   group_order:
     - Entertainment
     - Family/Kids
 providers:
   - uri: file://playlist.m3u
-    ignore_parse_errors: true
-    filters:
-      - |
-        Group in [
-          "Documentaries",
-          "Entertainment",
-          "Kids",
-          "Movies",
-          "Music",
-          "News",
-        ]
-
-    setters:
-      - name: replace(Name, " +", " ")
+    csv: file://playlist.csv
 epg_providers:
   - uri: file://myepg.xml

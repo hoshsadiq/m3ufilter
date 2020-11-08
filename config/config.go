@@ -8,9 +8,14 @@ import (
 
 var log = logger.Get()
 
+type ChannelIdRename struct {
+	From string
+	To string
+}
+
 type EpgProvider struct {
 	Uri              string
-	ChannelIdRenames map[string]string `yaml:"channel_id_renames"` // key = new_id, value = old_id
+	ChannelIdRenames []ChannelIdRename `yaml:"channel_id_renames"`
 }
 
 type Config struct {
@@ -20,17 +25,10 @@ type Config struct {
 	EpgProviders []*EpgProvider `yaml:"epg_providers"`
 }
 
-type Canonicalise struct {
-	Enable         bool
-	DefaultCountry string `yaml:"default_country"`
-}
-
 type Core struct {
 	ServerListen         string `yaml:"server_listen"`
 	AutoReloadConfig     bool   `yaml:"auto_reload_config"`
-	Output               string
 	UpdateSchedule       string       `yaml:"update_schedule"`
-	Canonicalise         Canonicalise `yaml:"canonicalise"`
 	GroupOrder           []string     `yaml:"group_order"`
 	PrettyOutputXml      bool
 	HttpTimeout          uint8 `yaml:"http_timeout"` // in seconds
@@ -86,21 +84,8 @@ func (c *CheckStreams) UnmarshalYAML(unmarshal func(interface{}) error) (err err
 
 type Provider struct {
 	Uri               string
-	IgnoreParseErrors bool         `yaml:"ignore_parse_errors"`
+	Csv               string
 	CheckStreams      CheckStreams `yaml:"check_streams"`
-	Filters           []string
-	Setters           []*Setter
-}
-
-type Setter struct {
-	ChNo  string `yaml:"chno"`
-	Name  string
-	Id    string
-	Logo  string
-	Group string
-	Shift string
-
-	Filters []string
 }
 
 var config *Config
@@ -110,14 +95,9 @@ func New(filepath string) (*Config, error) {
 		filepath: filepath,
 		Core: &Core{
 			AutoReloadConfig:     true,
-			UpdateSchedule:       "* */24 * * *",
-			Output:               "m3u",
+			UpdateSchedule:       "0 */24 * * *",
 			HttpTimeout:          60,
 			HttpMaxRetryAttempts: 5,
-			Canonicalise: Canonicalise{
-				Enable:         true,
-				DefaultCountry: "uk",
-			},
 		},
 	}
 

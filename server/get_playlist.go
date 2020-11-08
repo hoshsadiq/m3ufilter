@@ -16,6 +16,6 @@ func getPlaylist(state *httpState, w http.ResponseWriter, r *http.Request) error
 
 	w.Header().Set("Content-Type", "audio/mpegurl")
 
-	writer.WriteOutput(state.appConfig.Core.Output, w, *state.playlists)
+	writer.WriteM3U(w, *state.playlists)
 	return nil
 }
