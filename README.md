@@ -1,3 +1,7 @@
+# NOTE: PROJECT ABANDONED
+
+I suggest you invest some into setting up TVHeadend instead. It can do what m3ufilter does, and more, and better. If you are willing to take over the project, feel free to raise an issue.
+
 # m3ufilter
 
 This is a utility that will allow you to cleanup your M3U/M3U8/M3U+ files. This can change feed titles, names, tvg attributes, add/remove additional entries and much more.
