@@ -1,36 +1,13 @@
 core:
-  output: m3u
   auto_reload_config: true
-  canonicalise:
-    enable: true
   group_order:
     - Entertainment
     - Family/Kids
 providers:
   - uri: file://playlist.m3u
-    ignore_parse_errors: true
-    filters:
-      - |
-        Group in [
-          "Documentaries",
-          "Entertainment",
-          "Kids",
-          "Movies",
-          "Music",
-          "News",
-        ]
-
-    setters:
-      - name: replace(Name, " +", " ")
-      - Group: Family/Kids
-        filters:
-          - match(Group, "Kids")
-      - name: replace(Name, "^Sometoon Network", "SN")
-        filters:
-          - match(Name, "^Sometoon Network")
-      - id: =bbc.us
-        shift: =+3
-        filters:
-          - Name == "BBC America" && match(Group, "^US |")
+    csv: file://playlist.csv
 epg_providers:
   - uri: file://myepg.xml
+    channel_id_renames:
+      - from: BBC One
+        to: bbc.uk

@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/hoshsadiq/m3ufilter/config"
+	"github.com/hoshsadiq/m3ufilter/m3u/csv"
 	"github.com/hoshsadiq/m3ufilter/m3u/filter"
 	"github.com/hoshsadiq/m3ufilter/m3u/xmltv"
 	"io"
@@ -53,9 +54,6 @@ type streamMeta struct {
 	definition string
 	country    string
 
-	showCountry    bool
-	showDefinition bool
-
 	epgChannel *xmltv.Channel
 	available  bool
 }
@@ -84,22 +82,10 @@ type Stream struct {
 	meta streamMeta
 }
 
-func (s Stream) GetName() string {
-	name := s.Name
-	if s.meta.showCountry {
-		name += " " + s.meta.country
-	}
-	if s.meta.showDefinition {
-		name += " " + s.meta.definition
-	}
-
-	return name
-}
-
 // todo we can get rid of config as an argument by utilising some sort of state instead.
-func decode(conf *config.Config, reader io.Reader, providerConfig *config.Provider, epg *xmltv.XMLTV) (Streams, error) {
+func decode(conf *config.Config, m3uReader io.Reader, csvData map[string]*csv.StreamData, checkStreams config.CheckStreams, epg *xmltv.XMLTV) (Streams, error) {
 	buf := new(bytes.Buffer)
-	_, err := buf.ReadFrom(reader)
+	_, err := buf.ReadFrom(m3uReader)
 	if err != nil {
 		log.Infof("Failed to read from reader to decode m3u due to err = %v", err)
 		return nil, err
@@ -135,13 +121,11 @@ func decode(conf *config.Config, reader io.Reader, providerConfig *config.Provid
 		lines++
 		stream, err := parseExtinfLine(extinfLine, urlLine)
 		if err != nil {
-			if providerConfig.IgnoreParseErrors {
-				continue
-			}
-			return nil, err
+			continue
 		}
 
-		if !shouldIncludeStream(stream, providerConfig.Filters, providerConfig.CheckStreams) {
+		streamData, ok := csvData[stream.Name]
+		if (csvData != nil && !ok) || !isWorkingStream(stream, checkStreams) {
 			continue
 		}
 
@@ -149,7 +133,7 @@ func decode(conf *config.Config, reader io.Reader, providerConfig *config.Provid
 			epgChannel = getEpgChannel(stream, epg)
 		}
 
-		setSegmentValues(stream, epgChannel, providerConfig.Setters)
+		setSegmentValues(stream, streamData, epgChannel)
 
 		streams = append(streams, stream)
 	}
@@ -208,10 +192,9 @@ func getLine(buf *bytes.Buffer) (string, bool) {
 			log.Fatalf("unknown error: %v", err)
 		}
 
-		if len(line) < 1 || line == "\r" {
-			continue
+		if len(strings.TrimSpace(line)) > 0 {
+			break
 		}
-		break
 	}
 	return line, eof
 }

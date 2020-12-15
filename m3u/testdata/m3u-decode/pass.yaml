@@ -1,8 +1,7 @@
 provider:
   uri: string
-  ignore_parse_errors: false
-  filters: []
-  setters: []
+
+csv_data: ~
 
 expected_error: "__no_error__"
 streams:

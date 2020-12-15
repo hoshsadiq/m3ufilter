@@ -5,11 +5,6 @@ import (
 )
 
 func updatePlaylist(conf *httpState) {
-	if conf.lock {
-		log.Info("Retrieval is locked, trying again next time...")
-		return
-	}
-
 	if conf.appConfig.Core.AutoReloadConfig {
 		err := conf.appConfig.Load()
 		if err != nil {
@@ -18,13 +13,11 @@ func updatePlaylist(conf *httpState) {
 		}
 	}
 
-	conf.lock = true
-	defer func() {
-		conf.lock = false
-	}()
+	conf.mut.Lock()
+	defer conf.mut.Unlock()
 
 	log.Info("Updating playlists")
-	newPlaylists, newEpg, allFailed := m3u.ProcessConfig(conf.appConfig)
+	newPlaylists, newEpg, allFailed := m3u.ProcessConfig(conf.appConfig, false)
 	if allFailed {
 		log.Info("Skipping playlist synchronisation to server as all providers failed")
 	} else {

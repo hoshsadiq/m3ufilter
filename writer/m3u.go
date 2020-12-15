@@ -1,13 +1,16 @@
 package writer
 
 import (
+	"github.com/hoshsadiq/m3ufilter/logger"
 	"github.com/hoshsadiq/m3ufilter/m3u"
 	"io"
 	"strconv"
 	"strings"
 )
 
-func writeM3U(w io.Writer, streams []*m3u.Stream) {
+var log = logger.Get()
+
+func WriteM3U(w io.Writer, streams m3u.Streams) {
 	_, err := w.Write([]byte("#EXTM3U"))
 	if err != nil {
 		log.Fatalf("unable to write extm3u, err = %v", err)
@@ -34,7 +37,7 @@ func getStreamExtinf(stream *m3u.Stream) []byte {
 
 	writeKV(b, "CUID", stream.CUID)
 	writeKV(b, "tvg-id", stream.Id)
-	writeKV(b, "tvg-name", stream.GetName())
+	writeKV(b, "tvg-name", stream.Name)
 	writeKV(b, "group-title", stream.Group)
 	writeKV(b, "tvg-logo", stream.Logo)
 
@@ -43,7 +46,7 @@ func getStreamExtinf(stream *m3u.Stream) []byte {
 	}
 
 	b.WriteRune(',')
-	b.WriteString(stream.GetName())
+	b.WriteString(stream.Name)
 	b.WriteString("\n")
 	b.WriteString(stream.Uri)
 

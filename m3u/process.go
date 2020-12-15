@@ -1,36 +1,37 @@
 package m3u
 
 import (
-	"bufio"
-	"github.com/PuerkitoBio/rehttp"
+	"fmt"
 	"github.com/hoshsadiq/m3ufilter/config"
 	"github.com/hoshsadiq/m3ufilter/logger"
+	"github.com/hoshsadiq/m3ufilter/m3u/csv"
+	"github.com/hoshsadiq/m3ufilter/m3u/helper"
 	"github.com/hoshsadiq/m3ufilter/m3u/xmltv"
-	"net/http"
-	"net/url"
+	"github.com/hoshsadiq/m3ufilter/net"
 	"sort"
 	"strings"
-	"time"
 )
 
 var log = logger.Get()
 
-var client *http.Client
-
-func processProvider(conf *config.Config, provider *config.Provider, epg *xmltv.XMLTV) Streams {
-	resp, err := getUri(provider.Uri)
+func processProvider(conf *config.Config, provider *config.Provider, epg *xmltv.XMLTV, generatingCsv bool) Streams {
+	resp, err := net.GetUri(provider.Uri)
 	if err != nil {
 		log.Errorf("Could not retrieve file from %s, err = %v", provider.Uri, err)
 		return nil
 	}
-	defer func() {
-		err := resp.Body.Close()
-		if err != nil {
-			log.Errorf("could not close request body for provider %s, err = %v", provider.Uri, err)
-		}
-	}()
+	defer helper.Close(resp.Body, fmt.Sprintf("for provider %s", provider.Uri))()
 
-	pl, err := decode(conf, bufio.NewReader(resp.Body), provider, epg)
+	var csvData map[string]*csv.StreamData
+	if !generatingCsv {
+		csvData, err = csv.GetCsvMapping(provider.Csv)
+		if err != nil {
+			log.Errorf("Could not retrieve file from %s, err = %v", provider.Csv, err)
+			return nil
+		}
+	}
+
+	pl, err := decode(conf, resp.Body, csvData, provider.CheckStreams, epg)
 	if err != nil {
 		log.Errorf("could not decode playlist from provider %s, err = %v", provider.Uri, err)
 		return nil
@@ -38,12 +39,17 @@ func processProvider(conf *config.Config, provider *config.Provider, epg *xmltv.
 	return pl
 }
 
-func ProcessConfig(conf *config.Config) (streams Streams, epg *xmltv.XMLTV, allFailed bool) {
-	errors := 0
+func ProcessConfig(conf *config.Config, generatingCsv bool) (streams Streams, epg *xmltv.XMLTV, allFailed bool) {
+	errs := 0
+	var err error
 
-	epg, err := getEpg(conf.EpgProviders)
-	if err != nil {
-		log.Errorf("Could not parse EPG, skipping all EPG related tasks; err=%v", err)
+	if !generatingCsv {
+		epg, err = getEpg(conf.EpgProviders)
+		if err != nil {
+			log.Errorf("Could not parse EPG, skipping all EPG related tasks; err=%v", err)
+		}
+	} else {
+		epg = nil
 	}
 
 	streams = Streams{}
@@ -51,29 +57,20 @@ func ProcessConfig(conf *config.Config) (streams Streams, epg *xmltv.XMLTV, allF
 	//   furthermore, each line can be done in its own coroutine as well.
 	var pl Streams
 	for _, provider := range conf.Providers {
-		pl = processProvider(conf, provider, epg)
+		pl = processProvider(conf, provider, epg, generatingCsv)
 
 		if pl == nil {
-			errors++
+			errs++
 		} else {
 			streams = append(streams, pl...)
 		}
 	}
 
-	sort.Sort(streams)
-
-	if conf.Core.Canonicalise.Enable {
-		streamsLength := len(streams)
-		var nextStream *Stream
-		for i, stream := range streams {
-			if i+1 >= streamsLength {
-				continue
-			}
-
-			nextStream = streams[i+1]
-			setMeta(conf.Core.Canonicalise.DefaultCountry, stream, nextStream)
-		}
+	if generatingCsv {
+		return streams, nil, false
 	}
+
+	sort.Sort(streams)
 
 	if epg != nil {
 		var streamIds = make(map[string]bool, len(streams))
@@ -115,29 +112,11 @@ func ProcessConfig(conf *config.Config) (streams Streams, epg *xmltv.XMLTV, allF
 		setEpgInfo(epg)
 	}
 
-	return streams, epg, len(conf.Providers) == errors
+	return streams, epg, len(conf.Providers) == errs
 }
 
 func setEpgInfo(epg *xmltv.XMLTV) {
 	epg.SetGenerator(config.EpgGeneratorName(), config.EpgGeneratorUrl())
-}
-
-func getUri(uri string) (*http.Response, error) {
-	u, err := url.Parse(uri)
-	if err != nil {
-		log.Errorf("Could not parse URL for %s, err = %v", uri, err)
-		return nil, err
-	}
-	if u.Scheme == "file" {
-		log.Infof("reading from %s", u)
-	} else {
-		log.Infof("reading from %s://%s", u.Scheme, u.Host)
-	}
-	resp, err := client.Get(uri)
-	if err != nil {
-		return nil, err
-	}
-	return resp, err
 }
 
 func getEpg(providers []*config.EpgProvider) (*xmltv.XMLTV, error) {
@@ -147,7 +126,7 @@ func getEpg(providers []*config.EpgProvider) (*xmltv.XMLTV, error) {
 	totalProgrammes := 0
 
 	for i, provider := range providers {
-		resp, err := getUri(provider.Uri)
+		resp, err := net.GetUri(provider.Uri)
 		if err != nil {
 			return nil, err
 		}
@@ -222,66 +201,18 @@ func getEpg(providers []*config.EpgProvider) (*xmltv.XMLTV, error) {
 	return &xmltv.XMLTV{Programmes: allProgrammes, Channels: allChannels}, nil
 }
 
-func applyEpgIdRenames(epg *xmltv.XMLTV, renames map[string]string) {
-	for newId, oldId := range renames {
+func applyEpgIdRenames(epg *xmltv.XMLTV, renames []config.ChannelIdRename) {
+	for _, rename := range renames {
 		for _, chann := range epg.Channels {
-			if chann.ID == oldId {
-				chann.ID = newId
+			if chann.ID == rename.From {
+				chann.ID = rename.To
 			}
 		}
 
 		for _, programme := range epg.Programmes {
-			if programme.Channel == oldId {
-				programme.Channel = newId
+			if programme.Channel == rename.From {
+				programme.Channel = rename.To
 			}
 		}
-	}
-}
-
-func setMeta(mainCountry string, left *Stream, right *Stream) {
-	if left.meta.canonicalName != right.meta.canonicalName {
-		return
-	}
-
-	if left.meta.country != right.meta.country {
-		mainCountry = strings.ToUpper(mainCountry)
-		if left.meta.country == "" || left.meta.country != mainCountry {
-			left.meta.showCountry = true
-		}
-
-		if right.meta.country == "" || right.meta.country != mainCountry {
-			right.meta.showCountry = true
-		}
-
-		left.Name = strings.TrimSpace(regexWordCallback(left.Name, countries, removeWord))
-		right.Name = strings.TrimSpace(regexWordCallback(right.Name, countries, removeWord))
-	}
-
-	if left.meta.definition != right.meta.definition {
-		left.meta.showDefinition = true
-		right.meta.showDefinition = true
-
-		left.Name = strings.TrimSpace(regexWordCallback(left.Name, definitions, removeWord))
-		right.Name = strings.TrimSpace(regexWordCallback(right.Name, definitions, removeWord))
-	}
-}
-
-func InitClient(conf *config.Config) {
-	transport := &http.Transport{}
-	transport.RegisterProtocol("file", http.NewFileTransport(http.Dir("/")))
-
-	tr := rehttp.NewTransport(
-		transport,
-		rehttp.RetryAll(
-			rehttp.RetryMaxRetries(conf.Core.HttpMaxRetryAttempts),
-			rehttp.RetryStatuses(200),
-			rehttp.RetryTemporaryErr(),
-		),
-		rehttp.ConstDelay(time.Second),
-	)
-
-	client = &http.Client{
-		Timeout:   time.Second * time.Duration(conf.Core.HttpTimeout),
-		Transport: tr,
 	}
 }

@@ -1,17 +1,13 @@
 core:
-  output: m3u
   auto_reload_config: true
-  canonicalise:
-    enable: true
   group_order:
     - Entertainment
 providers:
   - uri: file://playlist.m3u
+    csv: file://playlist.csv
     check_streams:
       enabled: true
       method: get #or head
 #      action: remove
       #or
       action: none
-    filters:
-      - Group in ["Documentaries"]

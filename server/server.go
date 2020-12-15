@@ -6,6 +6,7 @@ import (
 	"github.com/hoshsadiq/m3ufilter/m3u"
 	"github.com/mileusna/crontab"
 	"net/http"
+	"sync"
 )
 
 var log = logger.Get()
@@ -13,7 +14,7 @@ var log = logger.Get()
 func Serve(appConfig *config.Config) {
 	conf := &httpState{
 		playlists: &m3u.Streams{},
-		lock:      false,
+		mut:       &sync.Mutex{},
 		appConfig: appConfig,
 		crontab:   crontab.New(),
 	}

@@ -13,8 +13,7 @@ func TestConfigLoadExample(t *testing.T) {
 		Core: &Core{
 			ServerListen:     "",
 			AutoReloadConfig: true,
-			UpdateSchedule:   "* */24 * * *",
-			Output:           "m3u",
+			UpdateSchedule:   "0 */24 * * *",
 			GroupOrder: []string{
 				"Entertainment",
 				"Family/Kids",
@@ -22,25 +21,12 @@ func TestConfigLoadExample(t *testing.T) {
 			HttpTimeout:          60,
 			HttpMaxRetryAttempts: 5,
 			groupOrderMap:        nil,
-			Canonicalise: Canonicalise{
-				Enable:         true,
-				DefaultCountry: "uk",
-			},
 		},
 		Providers: []*Provider{
 			{
-				Uri:               "file://playlist.m3u",
-				IgnoreParseErrors: true,
-				CheckStreams:      CheckStreams{Enabled: false},
-				Filters: []string{
-					"Group in [\n  \"Documentaries\",\n  \"Entertainment\",\n  \"Kids\",\n  \"Movies\",\n  \"Music\",\n  \"News\",\n]\n",
-				},
-				Setters: []*Setter{
-					{
-						Name:    `replace(Name, " +", " ")`,
-						Filters: nil,
-					},
-				},
+				Uri:          "file://playlist.m3u",
+				Csv:          "file://playlist.csv",
+				CheckStreams: CheckStreams{Enabled: false},
 			},
 		},
 		EpgProviders: []*EpgProvider{
@@ -53,63 +39,24 @@ func TestConfigLoadExample(t *testing.T) {
 	validateConfig(t, filepath, expectedConfig)
 }
 
-func TestConfigLoadNewCheckStreams(t *testing.T) {
-	filepath := "./testdata/config_new_check_streams.yaml"
+func TestConfigLoadCheckStreams(t *testing.T) {
+	filepath := "./testdata/config_check_streams.yaml"
 	expectedConfig := &Config{
 		filepath: filepath,
 		Core: &Core{
 			ServerListen:         "",
 			AutoReloadConfig:     true,
-			UpdateSchedule:       "* */24 * * *",
-			Output:               "m3u",
+			UpdateSchedule:       "0 */24 * * *",
 			GroupOrder:           []string{"Entertainment"},
 			HttpTimeout:          60,
 			HttpMaxRetryAttempts: 5,
 			groupOrderMap:        nil,
-			Canonicalise: Canonicalise{
-				Enable:         true,
-				DefaultCountry: "uk",
-			},
 		},
 		Providers: []*Provider{
 			{
-				Uri:               "file://playlist.m3u",
-				IgnoreParseErrors: false,
-				CheckStreams:      CheckStreams{Enabled: true, Method: "get", Action: "none"},
-				Filters:           []string{`Group in ["Documentaries"]`},
-				Setters:           nil,
-			},
-		},
-	}
-
-	validateConfig(t, filepath, expectedConfig)
-}
-
-func TestConfigLoadOldCheckStreams(t *testing.T) {
-	filepath := "./testdata/config_old_check_streams.yaml"
-	expectedConfig := &Config{
-		filepath: filepath,
-		Core: &Core{
-			ServerListen:         "",
-			AutoReloadConfig:     true,
-			UpdateSchedule:       "* */24 * * *",
-			Output:               "m3u",
-			GroupOrder:           []string{"Entertainment"},
-			HttpTimeout:          60,
-			HttpMaxRetryAttempts: 5,
-			groupOrderMap:        nil,
-			Canonicalise: Canonicalise{
-				Enable:         true,
-				DefaultCountry: "uk",
-			},
-		},
-		Providers: []*Provider{
-			{
-				Uri:               "file://playlist.m3u",
-				IgnoreParseErrors: false,
-				CheckStreams:      CheckStreams{Enabled: true, Method: "head", Action: "remove"},
-				Filters:           []string{`Group in ["Documentaries"]`},
-				Setters:           nil,
+				Uri:          "file://playlist.m3u",
+				Csv:          "file://playlist.csv",
+				CheckStreams: CheckStreams{Enabled: true, Method: "get", Action: "none"},
 			},
 		},
 	}

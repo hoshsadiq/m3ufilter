@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/hoshsadiq/m3ufilter/config"
 	"github.com/hoshsadiq/m3ufilter/logger"
+	"github.com/hoshsadiq/m3ufilter/m3u/csv"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
@@ -131,24 +132,22 @@ func TestDecoder(t *testing.T) {
 	logger.Get().SetLevel(logrus.WarnLevel)
 
 	_ = filepath.Walk("testdata/m3u-decode", func(path string, info os.FileInfo, err error) error {
-		//var testData interface{}
-		var testData simpleTest
-
 		ext := filepath.Ext(path)
 		if !info.IsDir() && (ext == ".yaml" || ext == ".yml") {
-			runTest(path, t, testData, ext, conf)
+			runTest(path, t, ext, conf)
 		}
 
 		return nil
 	})
 }
 
-func runTest(path string, t *testing.T, testData simpleTest, ext string, conf *config.Config) {
+func runTest(path string, t *testing.T, ext string, conf *config.Config) {
 	yamlFile, err := ioutil.ReadFile(path)
 	if err != nil {
 		t.Fatal(err)
 	}
 
+	var testData simpleTest
 	err = yaml.Unmarshal(yamlFile, &testData)
 	if err != nil {
 		t.Fatal(err)
@@ -166,7 +165,7 @@ func runTest(path string, t *testing.T, testData simpleTest, ext string, conf *c
 		}
 	}()
 
-	streams, err := decode(conf, f, &testData.Provider, nil)
+	streams, err := decode(conf, f, testData.CsvData, testData.checkStreams, nil)
 	if testData.ExpectedError != "__no_error__" && (err == nil || err.Error() != testData.ExpectedError) {
 		t.Errorf("Test %s failed. Expected err %s, but got %s", path, testData.ExpectedError, err)
 		return
@@ -193,4 +192,7 @@ type simpleTest struct {
 	ExpectedError string `yaml:"expected_error"`
 	Streams       Streams
 	Provider      config.Provider
+	CsvData       map[string]*csv.StreamData `yaml:"csv_data"`
+
+	checkStreams config.CheckStreams
 }

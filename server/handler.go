@@ -6,12 +6,13 @@ import (
 	"github.com/hoshsadiq/m3ufilter/m3u/xmltv"
 	"github.com/mileusna/crontab"
 	"net/http"
+	"sync"
 )
 
 type httpState struct {
 	appConfig *config.Config
 	playlists *m3u.Streams
-	lock      bool
+	mut       *sync.Mutex
 	crontab   *crontab.Crontab
 	epg       *xmltv.XMLTV
 }
